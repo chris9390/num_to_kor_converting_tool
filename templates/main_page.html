@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>메인 페이지 창</title>
+    <link rel="stylesheet" href="static/css/bootstrap.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
+
+</head>
+<body>
+    <div class="jumbotron">
+        <div class="container-fluid">
+
+                <div class="form-group">
+                    <label for="input">INPUT</label>
+                    <textarea class="form-control" rows="10" id="input" name="input"></textarea>
+                </div>
+
+
+
+                <div class="col-md-12 text-center">
+                    <hr>
+                    <button class="btn btn-primary btn-lg btn-block" id="myButton" onclick="button_click()">Change!</button>
+                    <a class="btn" href="#"></a>
+                    <input type="button">
+                    <hr>
+                </div>
+
+
+                <script language="JavaScript">
+                    function button_click(){
+                        //var input_string = document.getElementById("input").value;
+                        var input_string = $("#input").val();
+
+
+
+                        //document.getElementById("output").value = input_string;
+                        $("#output").val(input_string);
+                    };
+                </script>
+
+
+
+
+                <div class="form-group">
+                    <label for="output">OUTPUT</label>
+                    <textarea class="form-control" rows="10" id="output" name="output"></textarea>
+                </div>
+
+        </div>
+    </div>
+
+
+</body>
+</html>

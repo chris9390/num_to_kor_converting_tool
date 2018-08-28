@@ -1,14 +1,19 @@
 from flask import Flask, request, session, render_template, redirect, url_for
+from flask_bootstrap import Bootstrap
+
+
+
 app = Flask(__name__)
+Bootstrap(app)
 app.secret_key = 'abc'
-#
-@app.route('/')
-def hello_world():
-    return 'hello world!'
+
 
 @app.route('/main')
 def main():
-    return 'main page\n' + session['username'] + '\n' + session['password']
+    if 'username' in session.keys() and 'password' in session.keys():
+        return render_template('main_page.html')
+    else:
+        return '로그인 하십시오.'
 
 @app.route('/user/<username>')
 def show_user_profile(username):
@@ -35,6 +40,7 @@ def login_form():
 def login():
     if request.method == 'POST':
         if request.form['username'] == 'chris' and request.form['password'] == '1234':
+
             session['logged_in'] = True
             session['username'] = request.form['username']
             session['password'] = request.form['password']
@@ -51,6 +57,10 @@ def logout():
     session.pop('username', None)
     session.pop('password', None)
     return redirect(url_for('main'))
+
+
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5005, debug=True)
