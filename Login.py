@@ -1,11 +1,19 @@
 from flask import Flask, request, session, render_template, redirect, url_for
 from flask_bootstrap import Bootstrap
+import pymysql
 from NumberToWord import *
 
 
 app = Flask(__name__)
 Bootstrap(app)
 app.secret_key = 'abc'
+
+
+
+conn = pymysql.connect(host='163.239.169.54', user='s20131533', passwd='s20131533',
+                               db='number_to_word', charset='utf8')
+cur = conn.cursor()
+
 
 
 @app.route('/main')
@@ -15,13 +23,6 @@ def main():
     else:
         return '로그인 하십시오.'
 
-@app.route('/user/<username>')
-def show_user_profile(username):
-    return 'User is %s' %username
-
-@app.route('/post/<int:post_id>')
-def show_post(post_id):
-    return 'Post id is %d' %post_id
 
 @app.route('/logging')
 def logging_test():
@@ -39,7 +40,14 @@ def login_form():
 @app.route('/login', methods = ['POST','GET'])
 def login():
     if request.method == 'POST':
-        if request.form['username'] == 'chris' and request.form['password'] == '1234':
+
+        users = {}
+        cur.execute("select * from user_info")
+        for data in cur:
+            users[data[0]]= data[1]
+
+
+        if request.form['username'] in users.keys() and request.form['password'] == users[request.form['username']]:
             session['logged_in'] = True
             session['username'] = request.form['username']
             session['password'] = request.form['password']
@@ -56,10 +64,9 @@ def login():
 def change():
     if request.method == 'POST':
         session['input'] = request.form['input']
-        print(type(session['input']))
         input_str = session['input']
 
-        output_list = NumberToWord(input)
+        output_list = NumberToWord(input_str)
         output_str = "\n".join(output_list)
 
         return render_template('main_page.html', input=input_str, output=output_str)
