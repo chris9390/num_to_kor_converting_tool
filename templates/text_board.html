@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>텍스트 변환 게시판</title>
+    <link rel="stylesheet" href="static/css/bootstrap.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script type="text/javascript" src="static/js/bootstrap.js"></script>
+</head>
+<body>
+    <div class="container">
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>번호</th>
+                    <th>텍스트</th>
+                    <th>기사 번호</th>
+                    <th>기사 수집일</th>
+                    <th>텍스트 편집일</th>
+                    <th>조회수</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <th>1</th>
+                    <th><a href="#" onclick="text_click()">test</a></th>
+                    <th>1</th>
+                    <th>1</th>
+                    <th>1</th>
+                    <th>1</th>
+
+                </tr>
+            </tbody>
+        </table>
+
+
+        <div class="text-right">
+            <button class="btn btn-success" onclick="text_write()">글쓰기</button>
+        </div>
+
+
+        <div class="text-center">
+            <ul class="pagination">
+                <li><a href="#">1</a></li>
+                <li><a href="#">2</a></li>
+            </ul>
+        </div>
+
+    </div>
+
+    <script>
+        function text_click(){
+            alert('클릭!');
+        }
+
+        function text_write(){
+            alert('글쓰기!');
+        }
+    </script>
+
+</body>
+</html>

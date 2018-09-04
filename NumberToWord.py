@@ -3,7 +3,6 @@
 from trans_functions import *
 import re
 import time
-start_time = time.time()
 
 
 # K-9 자주포, sm5, k9, bmw 520d, QZ8501 항공기
@@ -186,6 +185,7 @@ for i in total:
 '''
 
 def NumberToWord(big_text):
+    start_time = time.time()
     index = 0
 
     # 개행 단위('\n')로 나눠서 text_list 배열로 저장
