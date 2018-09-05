@@ -8,11 +8,14 @@
     <script type="text/javascript" src="static/js/bootstrap.js"></script>
 </head>
 <body>
+
+
+
     <div class="container">
 
         <div class="form-group">
             <label for="ORIGINAL">ORIGINAL</label>
-            <input type="text" class="form-control" id="ORIGINAL" name="ORIGINAL">
+            <input type="text" class="form-control" id="ORIGINAL" name="ORIGINAL" value="">
         </div>
 
 
@@ -24,11 +27,11 @@
 
         <div class="form-group">
             <div class="checkbox">
-                <label><input type="checkbox" value="">변환 확인</label>
+                <label><input type="checkbox" name="confirm" id="confirm">변환 확인</label>
             </div>
 
             <div class="checkbox">
-                <label><input type="checkbox" value="">중의성</label>
+                <label><input type="checkbox" name="ambiguity" id="ambiguity">중의성</label>
             </div>
         </div>
 
@@ -36,16 +39,68 @@
         <div class="form-group">
             <div class="row">
                 <div class="col-md-1">
-                    <button class="btn btn-success" onclick="">취소</button>
+                    <button class="btn btn-success" id="cancel" onclick="cancel()">취소</button>
                 </div>
 
                 <div class="col-md-offset-10 col-md-1">
-                    <button class="btn btn-success" onclick="">저장</button>
+                    <button class="btn btn-success" id="save" onclick="save()">저장</button>
                 </div>
             </div>
         </div>
 
-
     </div>
+
+
+    <script language="JavaScript">
+
+        $(document).ready(function(){
+            $('#save').prop('disabled', true);
+
+            var total_address = decodeURIComponent(location.href);
+            var param_part = (total_address.split("?"))[1];
+            var param_arr = param_part.split("&");
+
+            original_text = getParameterByName(param_arr, "original_text");
+            converted_text = getParameterByName(param_arr, "converted_text");
+
+
+            $('#ORIGINAL').val(original_text);
+            $('#CONVERTED').val(converted_text);
+
+
+            $("#confirm").click(function(){
+                console.log($('#save').prop('checked', true));
+                if($('#save').prop('checked')){
+                    $('#save').prop('disabled', false);
+                }
+                else if($('#save').prop('checked')){
+                    $('#save').prop('disabled', true);
+                }
+
+            });
+
+
+        });
+
+        function getParameterByName(param_arr, param_name){
+            for(var i = 0 ; i < param_arr.length ; i++)
+            {
+                var key_value = param_arr[i].split("=");
+
+                if(key_value[0] === param_name)
+                {
+                    return key_value[1];
+                }
+            }
+        }
+
+        function cancel(){
+            location.href = "text_board";
+        }
+
+        function save(){
+
+        }
+    </script>
 </body>
 </html>

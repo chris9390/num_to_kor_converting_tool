@@ -8,7 +8,7 @@
     <script type="text/javascript" src="static/js/bootstrap.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="container-fluid">
 
         <table class="table table-hover">
             <thead>
@@ -23,15 +23,20 @@
             </thead>
 
             <tbody>
-                <tr>
-                    <th>1</th>
-                    <th><a href="#" onclick="text_click()">test</a></th>
-                    <th>1</th>
-                    <th>1</th>
-                    <th>1</th>
-                    <th>1</th>
+            {% for row in board_total|sort(attribute='0', reverse=True) %}
+                {% set original = row[1] %}
+                {% set converted = row[2] %}
 
+                <tr>
+                    <th>{{row[0]}}</th>
+                    <th><a href="#" onclick="text_click(`{{original}}`, `{{converted}}`)">{{row[1]}}</a></th>
+                    <th>{{row[3]}}</th>
+                    <th>{{row[4]}}</th>
+                    <th>{{row[5]}}</th>
+                    <th>{{row[6]}}</th>
                 </tr>
+            {% endfor %}
+
             </tbody>
         </table>
 
@@ -50,9 +55,14 @@
 
     </div>
 
-    <script>
-        function text_click(){
-            alert('클릭!');
+
+    <script language="JavaScript">
+        function text_click(original, converted){
+            var original_text = original;
+            var converted_text = converted;
+            var url = "text_convert?original_text=" + original_text + "&converted_text=" + converted_text;
+
+            location.href = url;
         }
 
         function text_write(){

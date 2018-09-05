@@ -13,7 +13,9 @@ app.secret_key = 'abc'
 
 conn = pymysql.connect(host='163.239.169.54', port=3306, user='s20131533', passwd='s20131533',db='number_to_word', charset='utf8')
 db_helper = DB_Helper(conn)
+
 cur = conn.cursor()
+
 
 
 
@@ -84,6 +86,8 @@ def text_board():
     board_total = []
     board_each_line = []
 
+    text_num = 1
+
     cur.execute("select * from ArticleTable")
     data_article = cur.fetchall()
     for row_article in data_article:
@@ -97,27 +101,42 @@ def text_board():
         cur.execute("select * from SentenceTable where ArticleTable_article_id=" + str(article_id))
         data_sent = cur.fetchall()
         for row_sent in data_sent:
+
+            board_each_line = []
+
             sent_id = row_sent[0]
             sent_original = row_sent[1]
-            sent_converted = row_sent[2]
+
+            #sent_converted = row_sent[2]
+
+            sent_converted_list = NumberToWord(sent_original)
+            sent_converted = "\n".join(sent_converted_list)
+
+
             sent_modified_date = row_sent[3]
             sent_check = row_sent[4]
             sent_ambiguity = row_sent[5]
             sent_views = row_sent[6]
 
 
-            board_each_line.append(sent_converted)
-            board_each_line.append(article_id)
-            board_each_line.append(article_collected_date)
-            board_each_line.append(sent_modified_date)
-            board_each_line.append(sent_views)
+            board_each_line.append(text_num)                    # row[0]
+            board_each_line.append(sent_original)               # row[1]
+            board_each_line.append(sent_converted)              # row[2]
+            board_each_line.append(article_id)                  # row[3]
+            board_each_line.append(article_collected_date)      # row[4]
+            board_each_line.append(sent_modified_date)          # row[5]
+            board_each_line.append(sent_views)                  # row[6]
 
 
             board_total.append(board_each_line)
 
+            text_num += 1
 
-        print(board_total)
-    return render_template('text_board.html')
+
+    print(board_total)
+
+    return render_template('text_board.html', board_total=board_total)
+
 
 @app.route('/text_convert')
 def text_convert():
