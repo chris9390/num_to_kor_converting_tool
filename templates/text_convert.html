@@ -11,40 +11,44 @@
 
     <div class="container">
 
-        <div class="form-group">
-            <label for="ORIGINAL">ORIGINAL</label>
-            <input type="text" class="form-control" id="ORIGINAL" name="ORIGINAL" value="{{original_text}}">
-        </div>
+        <form method="post" action="/text_board">
 
-
-        <div class="form-group">
-            <label for="CONVERTED">CONVERTED</label>
-            <input type="text" class="form-control" id="CONVERTED" name="CONVERTED" value="{{converted_text}}">
-        </div>
-
-
-        <div class="form-group">
-            <div class="checkbox">
-                <label><input type="checkbox" name="confirm" id="confirm">변환 확인</label>
+            <div class="form-group">
+                <label for="ORIGINAL">ORIGINAL</label>
+                <input type="text" class="form-control" id="ORIGINAL" name="ORIGINAL" value="{{original_text}}">
             </div>
 
-            <div class="checkbox">
-                <label><input type="checkbox" name="ambiguity" id="ambiguity">중의성</label>
+
+            <div class="form-group">
+                <label for="CONVERTED">CONVERTED</label>
+                <input type="text" class="form-control" id="CONVERTED" name="CONVERTED" value="{{converted_text}}">
             </div>
-        </div>
 
 
-        <div class="form-group">
-            <div class="row">
-                <div class="col-md-1">
-                    <button class="btn btn-success" id="cancel" onclick="history.back();">취소</button>
+            <div class="form-group">
+                <div class="checkbox">
+                    <label><input type="checkbox" name="confirm" id="confirm">변환 확인</label>
                 </div>
 
-                <div class="col-md-offset-10 col-md-1">
-                    <button class="btn btn-success" id="save" onclick="save()">저장</button>
+                <div class="checkbox">
+                    <label><input type="checkbox" name="ambiguity" id="ambiguity">중의성</label>
                 </div>
             </div>
-        </div>
+
+
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-1">
+                        <input type="button" class="btn btn-success" id="cancel" name="cancel" onclick="history.back();" value="취소">
+                    </div>
+
+                    <div class="col-md-offset-10 col-md-1">
+                        <input type="submit" class="btn btn-success" id="save" name="save" value="저장">
+                    </div>
+                </div>
+            </div>
+
+        </form>
 
     </div>
 
@@ -54,31 +58,21 @@
         $(document).ready(function(){
             $('#save').prop('disabled', true);
 
-            var total_address = decodeURIComponent(location.href);
-            var param_part = (total_address.split("?"))[1];
-            var param_arr = param_part.split("&");
-
-            original_text = getParameterByName(param_arr, "original_text");
-            converted_text = getParameterByName(param_arr, "converted_text");
-
-
-            $('#ORIGINAL').val(original_text);
-            $('#CONVERTED').val(converted_text);
-
 
             $("#confirm").click(function(){
-                console.log($('#save').prop('checked', true));
-                if($('#save').prop('checked')){
+
+                if($('#confirm').is(':checked')){
                     $('#save').prop('disabled', false);
                 }
-                else if($('#save').prop('checked')){
+                else{
                     $('#save').prop('disabled', true);
                 }
 
             });
 
-
         });
+
+
 
         function getParameterByName(param_arr, param_name){
             for(var i = 0 ; i < param_arr.length ; i++)
@@ -94,9 +88,6 @@
 
 
 
-        function save(){
-
-        }
     </script>
 </body>
 </html>

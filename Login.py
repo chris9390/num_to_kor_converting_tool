@@ -14,7 +14,7 @@ app.secret_key = 'abc'
 conn = pymysql.connect(host='163.239.169.54', port=3306, user='s20131533', passwd='s20131533',db='number_to_word', charset='utf8')
 db_helper = DB_Helper(conn)
 
-cur = conn.cursor()
+#cur = conn.cursor()
 
 
 
@@ -46,8 +46,8 @@ def login():
 
         users = {}
 
-        cur.execute("select * from user_info")
-        for data in cur:
+        rows = db_helper.get_every_from_user_info()
+        for data in rows:
             users[data[0]]= data[1]
 
 
@@ -78,76 +78,88 @@ def change():
         return '잘못된 접근'
 
 
-@app.route('/text_board')
+@app.route('/text_board', methods = ['POST', 'GET'])
 def text_board():
+    print(request.method)
 
-    data_article = ()
-
-    board_total = []
-    board_each_line = []
-
-    text_num = 1
-
-    cur.execute("select * from ArticleTable")
-    data_article = cur.fetchall()
-    for row_article in data_article:
-        article_id = row_article[0]
-        article_url = row_article[1]
-        article_title = row_article[2]
-        article_uploaded_date = row_article[3]
-        article_collected_date = row_article[4]
+    if request.method == 'GET':
+        board_each_line = []
+        board_total = []
 
 
-        cur.execute("select * from SentenceTable where ArticleTable_article_id=" + str(article_id))
-        data_sent = cur.fetchall()
-        for row_sent in data_sent:
-
-            board_each_line = []
-
-            sent_id = row_sent[0]
-            sent_original = row_sent[1]
-
-            #sent_converted = row_sent[2]
-
-            sent_converted_list = NumberToWord(sent_original)
-            sent_converted = "\n".join(sent_converted_list)
+        rows_article = db_helper.get_every_from_article()
+        for row_article in rows_article:
+            article_id = row_article[0]
+            article_url = row_article[1]
+            article_title = row_article[2]
+            article_uploaded_date = row_article[3]
+            article_collected_date = row_article[4]
 
 
-            sent_modified_date = row_sent[3]
-            sent_check = row_sent[4]
-            sent_ambiguity = row_sent[5]
-            sent_views = row_sent[6]
+            rows_sent = db_helper.get_every_from_sentence_by_id(article_id)
+            for row_sent in rows_sent:
+
+                board_each_line = []
+
+                sent_id = row_sent[0]
+                sent_original = row_sent[1]
+
+                #sent_converted = row_sent[2]
+
+                #sent_converted_list = NumberToWord(sent_original)
+                #sent_converted = "\n".join(sent_converted_list)
 
 
-            board_each_line.append(text_num)                    # row[0]
-            board_each_line.append(sent_original)               # row[1]
-            board_each_line.append(sent_converted)              # row[2]
-            board_each_line.append(article_id)                  # row[3]
-            board_each_line.append(article_collected_date)      # row[4]
-            board_each_line.append(sent_modified_date)          # row[5]
-            board_each_line.append(sent_views)                  # row[6]
+                sent_modified_date = row_sent[3]
+                sent_check = row_sent[4]
+                sent_ambiguity = row_sent[5]
+                sent_views = row_sent[6]
 
 
-            board_total.append(board_each_line)
+                board_each_line.append(sent_id)                     # row[0]
+                board_each_line.append(sent_original)               # row[1]
+                board_each_line.append(article_id)                  # row[2]
+                board_each_line.append(article_collected_date)      # row[3]
+                board_each_line.append(sent_modified_date)          # row[4]
+                board_each_line.append(sent_views)                  # row[5]
 
-            text_num += 1
+
+                board_total.append(board_each_line)
 
 
-    print(board_total)
 
-    return render_template('text_board.html', board_total=board_total)
+        session['board_total'] = board_total
+
+        print(board_total)
+
+        return render_template('text_board.html', board_total=board_total)
+
+
+
+    elif request.method == 'POST':
+
+        original_text = request.form['ORIGINAL']
+        converted_text = request.form['CONVERTED']
+
+        db_helper.update_converted_text(converted_text, session['saved_id'])
+
+        return render_template('text_board.html', board_total=session['board_total'])
 
 
 
 @app.route('/text_board/<id>/edit')
 def text_edit(id):
 
-    cur.execute('select sent_original from SentenceTable where sent_id = ' + str(id))
-    original_tuple = cur.fetchone()
+    session['saved_id'] = id
+
+    original_tuple = db_helper.get_original_from_sentence_by_id(id)
     original_text = original_tuple[0]
+
 
     converted_list = NumberToWord(original_text)
     converted_text = "\n".join(converted_list)
+
+    #db_helper.update_converted_text(converted_text, id)
 
 
     return render_template('text_convert.html', original_text = original_text, converted_text = converted_text)
@@ -159,6 +171,8 @@ def text_edit(id):
 @app.route('/text_convert')
 def text_convert():
     return render_template('text_convert.html')
+
+
 
 @app.route('/logout')
 def logout():

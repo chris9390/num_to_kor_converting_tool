@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>텍스트 변환 게시판</title>
-    <link rel="stylesheet" href="static/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script type="text/javascript" src="static/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.js"></script>
 </head>
 <body>
     <div class="container-fluid">
@@ -25,9 +25,6 @@
 
                 <tbody>
                 {% for row in board_total|sort(attribute='0', reverse=True) %}
-                    {% set original = row[1] %}
-                    {% set converted = row[2] %}
-
                     <tr>
                         <th>{{row[0]}}</th>
                         <!--
@@ -35,10 +32,10 @@
                         -->
                         <th><a href="#" onclick="text_click(`{{row[0]}}`)">{{row[1]}}</a></th>
 
+                        <th>{{row[2]}}</th>
                         <th>{{row[3]}}</th>
                         <th>{{row[4]}}</th>
                         <th>{{row[5]}}</th>
-                        <th>{{row[6]}}</th>
                     </tr>
                 {% endfor %}
 
@@ -60,15 +57,7 @@
 
 
     <script language="JavaScript">
-        /*
-        function text_click(original, converted){
-            var original_text = original;
-            var converted_text = converted;
-            var url = "text_convert?original_text=" + original_text + "&converted_text=" + converted_text;
 
-            location.href = url;
-        }
-        */
 
         function text_click(id){
 
