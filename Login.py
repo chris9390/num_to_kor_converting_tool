@@ -138,6 +138,24 @@ def text_board():
     return render_template('text_board.html', board_total=board_total)
 
 
+
+@app.route('/text_board/<id>/edit')
+def text_edit(id):
+
+    cur.execute('select sent_original from SentenceTable where sent_id = ' + str(id))
+    original_tuple = cur.fetchone()
+    original_text = original_tuple[0]
+
+    converted_list = NumberToWord(original_text)
+    converted_text = "\n".join(converted_list)
+
+
+    return render_template('text_convert.html', original_text = original_text, converted_text = converted_text)
+
+
+
+
+
 @app.route('/text_convert')
 def text_convert():
     return render_template('text_convert.html')
