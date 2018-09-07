@@ -17,6 +17,41 @@ db_helper = DB_Helper(conn)
 #cur = conn.cursor()
 
 
+def reload_board_total():
+
+    board_total = []
+
+    rows_article = db_helper.get_every_rows_from_table('ArticleTable')
+    for row_article in rows_article:
+        article_id = row_article[0]
+        article_url = row_article[1]
+        article_title = row_article[2]
+        article_uploaded_date = row_article[3]
+        article_collected_date = row_article[4]
+
+        # Article의 id와 연결되어있는 Sentence
+        rows_sent = db_helper.get_every_rows_from_sentence_by_id(article_id)
+        for row_sent in rows_sent:
+            board_each_line = {}
+
+            board_each_line['sent_id'] = row_sent[0]
+            board_each_line['sent_original'] = row_sent[1]
+            board_each_line['sent_converted'] = row_sent[2]
+            board_each_line['sent_modified_date'] = row_sent[3]
+            board_each_line['sent_confirm'] = row_sent[4]
+            board_each_line['sent_ambiguity'] = row_sent[5]
+            board_each_line['sent_converted_count'] = row_sent[6]
+            board_each_line['sent_is_added'] = row_sent[7]
+
+            board_each_line['article_id'] = article_id
+            board_each_line['article_collected_date'] = article_collected_date
+
+            board_total.append(board_each_line)
+
+
+
+    return board_total
+
 
 
 @app.route('/main')
@@ -46,7 +81,8 @@ def login():
 
         users = {}
 
-        rows = db_helper.get_every_from_user_info()
+        #rows = db_helper.get_every_from_user_info()
+        rows = db_helper.get_every_rows_from_table('user_info')
         for data in rows:
             users[data[0]]= data[1]
 
@@ -83,87 +119,100 @@ def text_board():
     print(request.method)
 
     if request.method == 'GET':
-        board_each_line = []
-        board_total = []
 
-
-        rows_article = db_helper.get_every_from_article()
-        for row_article in rows_article:
-            article_id = row_article[0]
-            article_url = row_article[1]
-            article_title = row_article[2]
-            article_uploaded_date = row_article[3]
-            article_collected_date = row_article[4]
-
-
-            rows_sent = db_helper.get_every_from_sentence_by_id(article_id)
-            for row_sent in rows_sent:
-
-                board_each_line = []
-
-                sent_id = row_sent[0]
-                sent_original = row_sent[1]
-
-                #sent_converted = row_sent[2]
-
-                #sent_converted_list = NumberToWord(sent_original)
-                #sent_converted = "\n".join(sent_converted_list)
-
-
-                sent_modified_date = row_sent[3]
-                sent_check = row_sent[4]
-                sent_ambiguity = row_sent[5]
-                sent_views = row_sent[6]
-
-
-                board_each_line.append(sent_id)                     # row[0]
-                board_each_line.append(sent_original)               # row[1]
-                board_each_line.append(article_id)                  # row[2]
-                board_each_line.append(article_collected_date)      # row[3]
-                board_each_line.append(sent_modified_date)          # row[4]
-                board_each_line.append(sent_views)                  # row[5]
-
-
-                board_total.append(board_each_line)
-
-
+        board_total = reload_board_total()
 
         session['board_total'] = board_total
 
-        print(board_total)
 
-        return render_template('text_board.html', board_total=board_total)
+        return render_template('text_board.html', board_total = board_total)
 
 
 
     elif request.method == 'POST':
 
+        id = session['sent_id']
+
+        sent_converted_count = db_helper.get_data_from_sentence_by_id('sent_converted_count', id)
+        sent_converted_count = sent_converted_count + 1
+        db_helper.update_sent_converted_count(sent_converted_count, id)
+
+
+        if 'ambiguity' in request.form:
+            db_helper.update_sent_ambiguity(id)
+
+
         original_text = request.form['ORIGINAL']
         converted_text = request.form['CONVERTED']
 
-        db_helper.update_converted_text(converted_text, session['saved_id'])
+        db_helper.update_sent_converted(converted_text, id)
+        db_helper.update_sent_modified_date(id)
+        db_helper.update_sent_confirm(id)
 
-        return render_template('text_board.html', board_total=session['board_total'])
+
+        board_total = reload_board_total()
+
+
+        return render_template('text_board.html', board_total = board_total)
 
 
 
 @app.route('/text_board/<id>/edit')
 def text_edit(id):
 
-    session['saved_id'] = id
+    session['sent_id'] = id
 
-    original_tuple = db_helper.get_original_from_sentence_by_id(id)
-    original_text = original_tuple[0]
+    sent_ambiguity = db_helper.get_data_from_sentence_by_id('sent_ambiguity', id)
 
+    original_text = db_helper.get_data_from_sentence_by_id('sent_original', id)
 
     converted_list = NumberToWord(original_text)
     converted_text = "\n".join(converted_list)
 
-    #db_helper.update_converted_text(converted_text, id)
-
 
     return render_template('text_convert.html', original_text = original_text, converted_text = converted_text)
 
+
+@app.route('/text_board/<id>/delete')
+def text_delete(id):
+
+    db_helper.delete_sent_by_id(id)
+
+    #board_total = reload_board_total()
+
+    return redirect(url_for('text_board'))
+    #return render_template('text_board.html', board_total = board_total)
+
+
+@app.route('/text_board/create', methods = ['GET', 'POST'])
+def text_create():
+    print(request.method)
+
+    if request.method == 'GET':
+        return render_template('text_create.html')
+
+    elif request.method == 'POST':
+        added_dict = {}
+
+        text_register = request.form['text_register']
+        print(text_register)
+
+
+        largest_sent_id = db_helper.get_largest_sent_id()
+
+
+        added_dict['sent_id'] = largest_sent_id + 1
+        added_dict['sent_original'] = text_register
+
+        # 기사로부터 가져온 것이 아니라 새로 추가한 것이기 때문에 1 로 설정, article_id는 0으로 설정
+        added_dict['sent_is_added'] = 1
+        added_dict['ArticleTable_article_id'] = 0
+
+
+        db_helper.insert_new_text(added_dict)
+
+
+        return redirect(url_for('text_board'))
 
 
 

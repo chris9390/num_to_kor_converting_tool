@@ -6,12 +6,59 @@
     <link rel="stylesheet" href="/static/css/bootstrap.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap.js"></script>
+
+
+
+    <script language="JavaScript">
+
+
+
+        $(document).ready(function(){
+
+            $('#save').prop('disabled', true);
+
+
+            $("#confirm").click(function(){
+
+                if($('#confirm').is(':checked')){
+                    $('#save').prop('disabled', false);
+                }
+                else{
+                    $('#save').prop('disabled', true);
+                }
+
+            });
+
+
+
+        });
+
+
+        function getParameterByName(param_arr, param_name){
+
+            for(var i = 0 ; i < param_arr.length ; i++)
+            {
+                var key_value = param_arr[i].split("=");
+
+                if(key_value[0] === param_name)
+                {
+                    return key_value[1];
+                }
+            }
+        }
+
+    </script>
+
 </head>
 <body>
 
     <div class="container">
 
-        <form method="post" action="/text_board">
+        <form id="frm" method="post" action="/text_board">
+
+            <div class="page-header">
+                <h2>변환된 텍스트를 확인해주세요.</h2>
+            </div>
 
             <div class="form-group">
                 <label for="ORIGINAL">ORIGINAL</label>
@@ -39,11 +86,11 @@
             <div class="form-group">
                 <div class="row">
                     <div class="col-md-1">
-                        <input type="button" class="btn btn-success" id="cancel" name="cancel" onclick="history.back();" value="취소">
+                        <input type="button" class="btn btn-danger" id="cancel" name="cancel" onclick="history.back()" value="취소">
                     </div>
 
-                    <div class="col-md-offset-10 col-md-1">
-                        <input type="submit" class="btn btn-success" id="save" name="save" value="저장">
+                    <div class="col-md-1">
+                        <input type="submit" class="btn btn-primary" id="save" name="save" value="저장">
                     </div>
                 </div>
             </div>
@@ -53,41 +100,5 @@
     </div>
 
 
-    <script language="JavaScript">
-
-        $(document).ready(function(){
-            $('#save').prop('disabled', true);
-
-
-            $("#confirm").click(function(){
-
-                if($('#confirm').is(':checked')){
-                    $('#save').prop('disabled', false);
-                }
-                else{
-                    $('#save').prop('disabled', true);
-                }
-
-            });
-
-        });
-
-
-
-        function getParameterByName(param_arr, param_name){
-            for(var i = 0 ; i < param_arr.length ; i++)
-            {
-                var key_value = param_arr[i].split("=");
-
-                if(key_value[0] === param_name)
-                {
-                    return key_value[1];
-                }
-            }
-        }
-
-
-
-    </script>
 </body>
 </html>
