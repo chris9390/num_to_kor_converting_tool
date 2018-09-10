@@ -1,16 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>텍스트 변환 게시판</title>
-    <link rel="stylesheet" href="/static/css/bootstrap.css">
+{% extends "base.html" %}
+{% block title %}BOARD{% endblock %}
+{% block head %}
+    {{super()}}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
-    <script type="text/javascript" src="/static/js/bootstrap.js"></script>
-
-
 
     <script language="JavaScript">
 
@@ -29,50 +23,64 @@
             $("#myTable").DataTable({
                 "stateSave" : true,
                 "searching" : false,
+                "pagingType" : "full_numbers",
                 "columnDefs" : [
                     {width:"5%", targets:0},
+                    {orderable:false, targets:1},
                     {width:"7%", targets:2},
                     {width:"15%", targets:3},
                     {width:"15%", targets:4},
-                    {width:"7%", targets:5}
+                    {width:"7%", targets:5},
+                    {orderable:false, targets:6}
                 ]
             });
 
         });
 
 
-
-
         function edit_text(id){
-            alert('edit ' + id);
+            //alert('edit ' + id);
 
             location.href = "text_board/" + id + "/edit";
         }
 
         function delete_text(id){
-            alert('delete ' + id);
+            //alert('delete ' + id);
 
             location.href = "text_board/" + id + "/delete";
         }
 
         function create_text(){
-            alert('create');
+            //alert('create');
 
             location.href = "text_board/create";
         }
-
-
     </script>
+{% endblock %}
 
-</head>
-<body>
+
+{% block content %}
     <div class="container-fluid">
+        <div class="page-header">
+            <h2>텍스트 변환 게시판</h2>
+        </div>
+    </div>
 
-            <div class="page-header">
-                <h2>텍스트 변환 게시판</h2>
-            </div>
 
 
+    <div class="navbar navbar-default">
+        <div class="container-fluid">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#">{{username}}님 접속중...</a></li>
+                    <li><a href="#"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                </ul>
+        </div>
+    </div>
+
+
+
+
+    <div class="container-fluid">
 
             <p>텍스트 필터</p>
             <div class="col-md-5">
@@ -126,13 +134,5 @@
                 <input type="button" class="btn btn-primary" value="글쓰기" onclick="create_text()">
             </div>
 
-
-
-
     </div>
-
-
-
-
-</body>
-</html>
+{% endblock %}

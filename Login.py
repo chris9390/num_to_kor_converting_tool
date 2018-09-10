@@ -1,4 +1,4 @@
-from flask import Flask, request, session, render_template, redirect, url_for
+from flask import Flask, request, session, render_template, redirect, url_for, flash
 from flask_bootstrap import Bootstrap
 import pymysql
 from db_helper import DB_Helper
@@ -37,14 +37,21 @@ def reload_board_total():
             board_each_line['sent_id'] = row_sent[0]
             board_each_line['sent_original'] = row_sent[1]
             board_each_line['sent_converted'] = row_sent[2]
+
             board_each_line['sent_modified_date'] = row_sent[3]
+            if board_each_line['sent_modified_date'] == '0000-00-00 00:00:00':
+                board_each_line['sent_modified_date'] = '-'
+
             board_each_line['sent_confirm'] = row_sent[4]
             board_each_line['sent_ambiguity'] = row_sent[5]
             board_each_line['sent_converted_count'] = row_sent[6]
             board_each_line['sent_is_added'] = row_sent[7]
 
             board_each_line['article_id'] = article_id
+
             board_each_line['article_collected_date'] = article_collected_date
+            if board_each_line['article_collected_date'] == '0000-00-00 00:00:00':
+                board_each_line['article_collected_date'] = '-'
 
             board_total.append(board_each_line)
 
@@ -71,32 +78,34 @@ def logging_test():
     return "로깅 끝"
 
 @app.route('/login')
-def login_form():
+def login():
     return render_template('login_form.html')
 
 
-@app.route('/check', methods = ['POST','GET'])
-def login():
+
+@app.route('/login_check', methods = ['POST','GET'])
+def login_check():
     if request.method == 'POST':
 
         users = {}
 
-        #rows = db_helper.get_every_from_user_info()
         rows = db_helper.get_every_rows_from_table('user_info')
-        for data in rows:
-            users[data[0]]= data[1]
+        for row in rows:
+            users[row[0]]= row[1]
 
 
+        # 유저이름과 그에 해당하는 패스워드가 일치하는지 확인
         if request.form['username'] in users.keys() and request.form['password'] == users[request.form['username']]:
             session['logged_in'] = True
             session['username'] = request.form['username']
             session['password'] = request.form['password']
-
-            return render_template('main_page.html', username=session['username'])
+            #return render_template('main_page.html', username=session['username'])
+            return redirect(url_for('text_board'))
         else:
             error_msg = '로그인 정보가 맞지 않습니다.'
             return render_template('login_form.html', error_msg=error_msg)
-    else:
+
+    elif request.method == 'GET':
         return '잘못된 접근'
 
 
@@ -117,19 +126,20 @@ def change():
 @app.route('/text_board', methods = ['POST', 'GET'])
 def text_board():
     print(request.method)
+    username = session['username']
 
     if request.method == 'GET':
 
         board_total = reload_board_total()
 
-        session['board_total'] = board_total
-
-
-        return render_template('text_board.html', board_total = board_total)
+        return render_template('text_board.html', board_total = board_total, username = username)
 
 
 
     elif request.method == 'POST':
+        if request.form['ORIGINAL'] == '' or request.form['CONVERTED'] == '':
+            flash('텍스트를 입력해 주세요.','warning')
+            return redirect(url_for('text_edit',id=session['sent_id']))
 
         id = session['sent_id']
 
@@ -160,6 +170,7 @@ def text_board():
 @app.route('/text_board/<id>/edit')
 def text_edit(id):
 
+
     session['sent_id'] = id
 
     sent_ambiguity = db_helper.get_data_from_sentence_by_id('sent_ambiguity', id)
@@ -178,7 +189,6 @@ def text_delete(id):
 
     db_helper.delete_sent_by_id(id)
 
-    #board_total = reload_board_total()
 
     return redirect(url_for('text_board'))
     #return render_template('text_board.html', board_total = board_total)
@@ -192,6 +202,11 @@ def text_create():
         return render_template('text_create.html')
 
     elif request.method == 'POST':
+        if request.form['text_register'] == '':
+            flash('텍스트를 입력해주세요.', 'warning')
+            return render_template('text_create.html')
+            #return redirect(url_for('text_create'))
+
         added_dict = {}
 
         text_register = request.form['text_register']

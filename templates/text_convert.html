@@ -1,17 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>텍스트 편집 창</title>
-    <link rel="stylesheet" href="/static/css/bootstrap.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script type="text/javascript" src="/static/js/bootstrap.js"></script>
-
-
-
+{% extends "base.html" %}
+{% block title %}EDIT{% endblock %}
+{% block head %}
+    {{super()}}
     <script language="JavaScript">
-
-
 
         $(document).ready(function(){
 
@@ -48,16 +39,28 @@
         }
 
     </script>
+{% endblock %}
 
-</head>
-<body>
-
+{% block content %}
     <div class="container">
 
         <form id="frm" method="post" action="/text_board">
 
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert alert-danger" role="alert">
+                    <ul class="flashes">
+                        {% for message in messages %}
+                            <li class="message_flash">{{message}}</li>
+                        {% endfor %}
+                    </ul>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+
             <div class="page-header">
-                <h2>변환된 텍스트를 확인해주세요.</h2>
+                <h2>변환된 텍스트를 확인하고, 틀린 부분이 있으면 다시 고쳐주세요.</h2>
             </div>
 
             <div class="form-group">
@@ -74,7 +77,7 @@
 
             <div class="form-group">
                 <div class="checkbox">
-                    <label><input type="checkbox" name="confirm" id="confirm">변환 확인</label>
+                    <label><input type="checkbox" name="confirm" id="confirm">변환 확인 <span style="color:red">(필수 체크)</span></label>
                 </div>
 
                 <div class="checkbox">
@@ -86,7 +89,7 @@
             <div class="form-group">
                 <div class="row">
                     <div class="col-md-1">
-                        <input type="button" class="btn btn-danger" id="cancel" name="cancel" onclick="history.back()" value="취소">
+                        <input type="button" class="btn btn-danger" id="cancel" name="cancel" onclick="location.href ='/text_board'" value="취소">
                     </div>
 
                     <div class="col-md-1">
@@ -98,7 +101,4 @@
         </form>
 
     </div>
-
-
-</body>
-</html>
+{% endblock %}

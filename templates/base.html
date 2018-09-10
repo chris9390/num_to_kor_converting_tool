@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %} - My Webpage</title>
+    <link rel="stylesheet" href="static/css/bootstrap.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script type="text/javascript" src="static/js/bootstrap.js"></script>
+    {% endblock %}
+</head>
+<body>
+    <div id="content">{% block content %}{% endblock %}</div>
+    <div id="footer" class="col-md-offset-2">
+        <br>
+        <p>Made by: KYI</p>
+        <p>Contact information: <a href="mailto:chris9390@naver.com">chris9390@naver.com</a></p>
+    </div>
+</body>
+</html>
