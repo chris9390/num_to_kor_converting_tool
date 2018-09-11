@@ -4,6 +4,18 @@
     <div class="container">
         <form class="form-horizontal" method="post" action="/login_check">
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alert alert-success">
+                        <ul class="flashes">
+                            {% for category, message in messages %}
+                                <li class="{{category}}">{{message}}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
             <div class="page-header">
                 <h2>로그인 정보를 입력해 주세요</h2>
             </div>

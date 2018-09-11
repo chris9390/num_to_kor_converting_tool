@@ -243,7 +243,8 @@ def logout():
     session['logged_in'] = False
     session.pop('username', None)
     session.pop('password', None)
-    return redirect(url_for('main'))
+    flash('로그아웃 되었습니다.', 'success')
+    return redirect(url_for('login'))
 
 
 

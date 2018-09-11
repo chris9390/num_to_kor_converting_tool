@@ -1,18 +1,19 @@
 {% extends "base.html" %}
 {% block title %}CREATE{% endblock %}
+
 {% block content %}
     <div class="container">
 
         <form method="post" action="/text_board/create">
 
-            {% with messages = get_flashed_messages() %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     <div class="alert alert-danger" role="alert">
-                    <ul class="flashes">
-                        {% for message in messages %}
-                            <li class="message_flash">{{message}}</li>
-                        {% endfor %}
-                    </ul>
+                        <ul class="flashes">
+                            {% for category, message in messages %}
+                                <li class="{{category}}">{{message}}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 {% endif %}
             {% endwith %}
