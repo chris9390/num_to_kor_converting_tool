@@ -154,9 +154,19 @@ class DB_Helper:
         return rows
 
 
+
+
+
+
     # ===============================================================================================
     # ===============================================================================================
     # ===============================================================================================
+    # ===============================================================================================
+    # ===============================================================================================
+    # ===============================================================================================
+
+
+
 
     def insert_new_text(self, dict):
         c = self.conn.cursor()
@@ -174,7 +184,7 @@ class DB_Helper:
 
     # ===============================================================================================
 
-    def get_every_rows_from_table(self, table_name):
+    def select_every_rows_from_table(self, table_name):
         c = self.conn.cursor()
 
         sql = "SELECT * FROM %s" % table_name
@@ -186,7 +196,7 @@ class DB_Helper:
 
 
 
-    def get_every_rows_from_sentence_by_id(self, id):
+    def select_every_rows_from_sentence_by_id(self, id):
         c = self.conn.cursor()
 
         sql = "SELECT * FROM SentenceTable WHERE ArticleTable_article_id= %s" % id
@@ -195,10 +205,14 @@ class DB_Helper:
         rows = c.fetchall()
         return rows
 
-    def get_data_from_sentence_by_id(self, column_name, id):
+    def select_data_from_table_by_id(self, column_name, table_name, id):
         c = self.conn.cursor()
 
-        sql = "SELECT %s FROM SentenceTable WHERE sent_id = %s" % (column_name, id)
+        if table_name == 'ArticleTable':
+            sql = "SELECT %s FROM %s WHERE article_id = %s" % (column_name, table_name, id)
+        elif table_name == 'SentenceTable':
+            sql = "SELECT %s FROM %s WHERE sent_id = %s" % (column_name, table_name, id)
+
         c.execute(sql)
 
         row = (c.fetchone())[0]
@@ -206,7 +220,7 @@ class DB_Helper:
 
 
 
-    def get_largest_sent_id(self):
+    def select_largest_sent_id(self):
         c = self.conn.cursor()
 
         sql = "SELECT sent_id FROM SentenceTable ORDER BY sent_id DESC LIMIT 1"
@@ -216,6 +230,18 @@ class DB_Helper:
         row = (c.fetchone())[0]
         return row
 
+
+    def select_every_rows_including_text_from_table(self, table_name, text):
+        c = self.conn.cursor()
+
+
+        sql = "SELECT * FROM %s WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR " \
+                                        "(sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (table_name, text, text)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        return rows
 
     # ===============================================================================================
 

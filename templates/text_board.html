@@ -10,7 +10,7 @@
 
         $(document).ready(function() {
 
-            $("#myFilter").keyup(function(){
+            $("#mySearch").keyup(function(){
 
                 var value = $(this).val();
 
@@ -37,24 +37,29 @@
 
         });
 
-
+        /*
         function edit_text(id){
             //alert('edit ' + id);
 
             location.href = "text_board/" + id + "/edit";
         }
+        */
 
         function delete_text(id){
             //alert('delete ' + id);
 
-            location.href = "text_board/" + id + "/delete";
+            //location.href = "text_board/" + id + "/delete";
+            location.replace("/text_board/" + id + "/delete");
         }
 
         function create_text(){
             //alert('create');
 
-            location.href = "text_board/create";
+            //location.href = "text_board/create";
+            location.replace("/text_board/create");
         }
+
+
     </script>
 {% endblock %}
 
@@ -82,57 +87,65 @@
 
     <div class="container-fluid">
 
-            <p>텍스트 필터</p>
-            <div class="col-md-5">
-                <input class="form-control" type="text" id="myFilter" type="text" placeholder="Search...">
+        <p><b>텍스트 검색</b></p>
+
+        <form method="get" action="/text_board/search" role="search">
+            <div class="row">
+                <div class="col-md-5">
+                    <input type="text" class="form-control" id="SearchText" name="query" placeholder="Search...">
+                </div>
+
+                <input type="submit" class="btn btn-primary" value="검색">
             </div>
-            <br><br><br>
+        </form>
+
+        <br><br><br>
 
 
 
-            <table class="table table-hover" id="myTable">
-                <thead>
-                    <tr>
-                        <th class="text-center">번호</th>
-                        <th class="text-center">텍스트</th>
-                        <th class="text-center">기사 번호</th>
-                        <th class="text-center">기사 수집일</th>
-                        <th class="text-center">텍스트 편집일</th>
-                        <th class="text-center">수정 횟수</th>
-                        <th></th>
-                    </tr>
-                </thead>
+        <table class="table table-hover" id="myTable">
+            <thead>
+                <tr>
+                    <th class="text-center">번호</th>
+                    <th class="text-center">텍스트</th>
+                    <th class="text-center">기사 번호</th>
+                    <th class="text-center">기사 수집일</th>
+                    <th class="text-center">텍스트 편집일</th>
+                    <th class="text-center">수정 횟수</th>
+                    <th></th>
+                </tr>
+            </thead>
 
-                <tbody id="myTbody">
-                {% for row in board_total|sort(attribute='sent_id', reverse=True) %}
-                    <tr>
-                        <td class="text-center">{{row.sent_id}}</td>
+            <tbody id="myTbody">
+            {% for row in board_total|sort(attribute='sent_id', reverse=True) %}
+                <tr>
+                    <td class="text-center">{{row.sent_id}}</td>
 
-                        {% if row.sent_confirm == 1 %}
-                        <td>
-                            <a href="#" onclick="edit_text('{{row.sent_id}}')">{{row.sent_converted}}</a>
-                        </td>
-                        {% else %}
-                        <td>
-                            <a href="#" onclick="edit_text('{{row.sent_id}}')">{{row.sent_original}}</a>
-                        </td>
-                        {% endif %}
+                    {% if row.sent_confirm == 1 %}
+                    <td>
+                        <a href="/text_board/{{row.sent_id}}/edit">{{row.sent_converted}}</a>
+                    </td>
+                    {% else %}
+                    <td>
+                        <a href="/text_board/{{row.sent_id}}/edit">{{row.sent_original}}</a>
+                    </td>
+                    {% endif %}
 
-                        <td class="text-center">{{row.article_id}}</td>
-                        <td class="text-center">{{row.article_collected_date}}</td>
-                        <td class="text-center">{{row.sent_modified_date}}</td>
-                        <td class="text-center">{{row.sent_converted_count}}</td>
-                        <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="delete_text('{{row.sent_id}}')"></td>
-                    </tr>
-                {% endfor %}
+                    <td class="text-center">{{row.article_id}}</td>
+                    <td class="text-center">{{row.article_collected_date}}</td>
+                    <td class="text-center">{{row.sent_modified_date}}</td>
+                    <td class="text-center">{{row.sent_converted_count}}</td>
+                    <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="delete_text('{{row.sent_id}}')"></td>
+                </tr>
+            {% endfor %}
 
-                </tbody>
-            </table>
+            </tbody>
+        </table>
 
 
-            <div class="text-right">
-                <input type="button" class="btn btn-primary" value="글쓰기" onclick="create_text()">
-            </div>
+        <div class="text-right">
+            <input type="button" class="btn btn-primary" value="글쓰기" onclick="create_text()">
+        </div>
 
     </div>
 {% endblock %}

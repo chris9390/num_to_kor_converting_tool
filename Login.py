@@ -21,7 +21,7 @@ def reload_board_total():
 
     board_total = []
 
-    rows_article = db_helper.get_every_rows_from_table('ArticleTable')
+    rows_article = db_helper.select_every_rows_from_table('ArticleTable')
     for row_article in rows_article:
         article_id = row_article[0]
         article_url = row_article[1]
@@ -30,7 +30,7 @@ def reload_board_total():
         article_collected_date = row_article[4]
 
         # Article의 id와 연결되어있는 Sentence
-        rows_sent = db_helper.get_every_rows_from_sentence_by_id(article_id)
+        rows_sent = db_helper.select_every_rows_from_sentence_by_id(article_id)
         for row_sent in rows_sent:
             board_each_line = {}
 
@@ -77,9 +77,19 @@ def logging_test():
     app.logger.error('에러발생')
     return "로깅 끝"
 
+
 @app.route('/login')
 def login():
     return render_template('login_form.html')
+
+
+@app.route('/logout')
+def logout():
+    session['logged_in'] = False
+    session.pop('username', None)
+    session.pop('password', None)
+    flash('로그아웃 되었습니다.', 'success')
+    return redirect(url_for('login'))
 
 
 
@@ -89,7 +99,7 @@ def login_check():
 
         users = {}
 
-        rows = db_helper.get_every_rows_from_table('user_info')
+        rows = db_helper.select_every_rows_from_table('user_info')
         for row in rows:
             users[row[0]]= row[1]
 
@@ -143,7 +153,7 @@ def text_board():
 
         id = session['sent_id']
 
-        sent_converted_count = db_helper.get_data_from_sentence_by_id('sent_converted_count', id)
+        sent_converted_count = db_helper.select_data_from_table_by_id('sent_converted_count','SentenceTable', id)
         sent_converted_count = sent_converted_count + 1
         db_helper.update_sent_converted_count(sent_converted_count, id)
 
@@ -163,19 +173,18 @@ def text_board():
         board_total = reload_board_total()
 
 
-        return render_template('text_board.html', board_total = board_total)
+        return render_template('text_board.html', board_total = board_total, username = username)
 
 
 
 @app.route('/text_board/<id>/edit')
 def text_edit(id):
 
-
     session['sent_id'] = id
 
-    sent_ambiguity = db_helper.get_data_from_sentence_by_id('sent_ambiguity', id)
+    sent_ambiguity = db_helper.select_data_from_table_by_id('sent_ambiguity', 'SentenceTable', id)
 
-    original_text = db_helper.get_data_from_sentence_by_id('sent_original', id)
+    original_text = db_helper.select_data_from_table_by_id('sent_original', 'SentenceTable', id)
 
     converted_list = NumberToWord(original_text)
     converted_text = "\n".join(converted_list)
@@ -213,7 +222,7 @@ def text_create():
         print(text_register)
 
 
-        largest_sent_id = db_helper.get_largest_sent_id()
+        largest_sent_id = db_helper.select_largest_sent_id()
 
 
         added_dict['sent_id'] = largest_sent_id + 1
@@ -230,6 +239,46 @@ def text_create():
         return redirect(url_for('text_board'))
 
 
+@app.route('/text_board/search', methods=['GET'])
+def text_search():
+    search_msg = request.args.get('query')
+    rows_inc = db_helper.select_every_rows_including_text_from_table('SentenceTable', search_msg)
+
+    username = session['username']
+
+    board_search = []
+
+
+    for row in rows_inc:
+        print(row)
+        board_each_line = {}
+
+        board_each_line['sent_id'] = row[0]
+        board_each_line['sent_original'] = row[1]
+        board_each_line['sent_converted'] = row[2]
+
+        board_each_line['sent_modified_date'] = row[3]
+        if board_each_line['sent_modified_date'] == '0000-00-00 00:00:00':
+            board_each_line['sent_modified_date'] = '-'
+
+        board_each_line['sent_confirm'] = row[4]
+        board_each_line['sent_ambiguity'] = row[5]
+        board_each_line['sent_converted_count'] = row[6]
+        board_each_line['sent_is_added'] = row[7]
+
+        board_each_line['article_id'] = row[8]
+
+        article_collected_date = db_helper.select_data_from_table_by_id('article_collected_date', 'ArticleTable', row[8])
+        board_each_line['article_collected_date'] = article_collected_date
+        if board_each_line['article_collected_date'] == '0000-00-00 00:00:00':
+            board_each_line['article_collected_date'] = '-'
+
+
+        board_search.append(board_each_line)
+
+
+
+    return render_template('text_board.html', board_total = board_search, username = username)
 
 
 @app.route('/text_convert')
@@ -238,13 +287,7 @@ def text_convert():
 
 
 
-@app.route('/logout')
-def logout():
-    session['logged_in'] = False
-    session.pop('username', None)
-    session.pop('password', None)
-    flash('로그아웃 되었습니다.', 'success')
-    return redirect(url_for('login'))
+
 
 
 
