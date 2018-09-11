@@ -1,4 +1,6 @@
 import time
+from flask_paginate import get_page_args, Pagination
+
 
 class DB_Helper:
     def __init__(self, conn):
@@ -209,13 +211,13 @@ class DB_Helper:
         c = self.conn.cursor()
 
         if table_name == 'ArticleTable':
-            sql = "SELECT %s FROM %s WHERE article_id = %s" % (column_name, table_name, id)
+            sql = "SELECT %s as data FROM %s WHERE article_id = %s" % (column_name, table_name, id)
         elif table_name == 'SentenceTable':
-            sql = "SELECT %s FROM %s WHERE sent_id = %s" % (column_name, table_name, id)
+            sql = "SELECT %s as data FROM %s WHERE sent_id = %s" % (column_name, table_name, id)
 
         c.execute(sql)
 
-        row = (c.fetchone())[0]
+        row = c.fetchone()['data']
         return row
 
 
@@ -223,11 +225,11 @@ class DB_Helper:
     def select_largest_sent_id(self):
         c = self.conn.cursor()
 
-        sql = "SELECT sent_id FROM SentenceTable ORDER BY sent_id DESC LIMIT 1"
+        sql = "SELECT sent_id as id FROM SentenceTable ORDER BY sent_id DESC LIMIT 1"
 
         c.execute(sql)
 
-        row = (c.fetchone())[0]
+        row = c.fetchone()['id']
         return row
 
 
@@ -347,3 +349,39 @@ class DB_Helper:
 
         print("Number of rows deleted: %d" % c.rowcount)
         return
+
+    # ===============================================================================================
+
+
+    def call_board(self, page, per_page):
+
+        c = self.conn.cursor()
+
+        # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
+        limit_start = per_page * (page - 1)
+
+        sql = "SELECT ST.* FROM SentenceTable as ST left join ArticleTable as AT on ST.sent_id = AT.article_id"
+        sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        return rows
+
+
+
+    def call_board_search(self, page, per_page, text):
+
+        c = self.conn.cursor()
+
+        # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
+        limit_start = per_page * (page - 1)
+
+        sql = "SELECT ST.* FROM SentenceTable as ST left join ArticleTable as AT on ST.sent_id = AT.article_id"
+        sql += " WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (text, text)
+        sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        return rows
