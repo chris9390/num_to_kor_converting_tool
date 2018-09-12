@@ -7,14 +7,43 @@
     <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.css')}}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="{{url_for('static', filename='js/bootstrap.js')}}"></script>
+
+    <style>
+        html,body{
+            height:100%;
+            margin:0;
+            padding:0;
+        }
+        #body{
+            min-height:100%;
+            position:relative;
+        }
+        #content{
+            padding-bottom:50px;
+            margin-bottom:20px;
+        }
+        #footer{
+            position:relative;
+            bottom:0;
+            width:100%;
+            color:black;
+            background-color:silver
+        }
+        #footer p{
+            text-align:center;
+        }
+    </style>
+
     {% endblock %}
 </head>
+
 <body>
-    <div id="content">{% block content %}{% endblock %}</div>
-    <div id="footer" class="col-md-offset-2">
-        <br>
-        <p>Made by: Kim Young-in</p>
-        <p>Contact information: <a href="mailto:chris9390@naver.com">chris9390@naver.com</a></p>
+    <div id="body">
+        <div id="content">{% block content %}{% endblock %}</div>
+        <div id="footer">
+            <p>Made by: Kim Young-in</p>
+            <p>Contact information: <a href="mailto:chris9390@naver.com">chris9390@naver.com</a></p>
+        </div>
     </div>
 </body>
 </html>

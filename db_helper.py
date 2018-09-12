@@ -360,7 +360,7 @@ class DB_Helper:
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
         limit_start = per_page * (page - 1)
 
-        sql = "SELECT ST.* FROM SentenceTable as ST left join ArticleTable as AT on ST.sent_id = AT.article_id"
+        sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
         sql += " LIMIT %s,%s" % (limit_start, per_page)
 
         c.execute(sql)
@@ -377,7 +377,7 @@ class DB_Helper:
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
         limit_start = per_page * (page - 1)
 
-        sql = "SELECT ST.* FROM SentenceTable as ST left join ArticleTable as AT on ST.sent_id = AT.article_id"
+        sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
         sql += " WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (text, text)
         sql += " LIMIT %s,%s" % (limit_start, per_page)
 

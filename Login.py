@@ -147,34 +147,28 @@ def text_board():
     username = session['username']
 
 
-
-    sql = "SELECT count(*) as total_count FROM SentenceTable"
-    cur.execute(sql)
-    total_count = cur.fetchone()['total_count']
-
-
-    page = request.args.get(get_page_parameter(), type=int, default=1)
-    per_page = 10
-
-
-    board_total = db_helper.call_board(page, per_page)
-
-
-    pagination = Pagination(page=page,
-                            per_page=per_page,
-                            total=total_count,
-                            record_name='SentenceTable',
-                            bs_version=4,
-                            alignment='center',
-                            show_single_page=True)
-
-
-
     if request.method == 'GET':
+
+        sql = "SELECT count(*) as total_count FROM SentenceTable"
+        cur.execute(sql)
+        total_count = cur.fetchone()['total_count']
+
+        page = request.args.get(get_page_parameter(), type=int, default=1)
+        per_page = 10
+
+        board_total = db_helper.call_board(page, per_page)
+
+        pagination = Pagination(page=page,
+                                per_page=per_page,
+                                total=total_count,
+                                record_name='Sentences',
+                                bs_version=4,
+                                alignment='center',
+                                show_single_page=True)
 
         #board_total = reload_board_total()
 
-        return render_template('text_board.html', board_total = board_total, username = username, pagination = pagination)
+        return render_template('text_board.html', board_total = board_total, username = username, pagination = pagination, page = page)
 
 
 
@@ -204,8 +198,27 @@ def text_board():
 
         #board_total = reload_board_total()
 
+        sql = "SELECT count(*) as total_count FROM SentenceTable"
+        cur.execute(sql)
+        total_count = cur.fetchone()['total_count']
 
-        return render_template('text_board.html', board_total = board_total, username = username, pagination = pagination)
+        page = request.args.get(get_page_parameter(), type=int, default=1)
+        per_page = 10
+
+        board_total = db_helper.call_board(page, per_page)
+
+        pagination = Pagination(page=page,
+                                per_page=per_page,
+                                total=total_count,
+                                record_name='Sentences',
+                                bs_version=4,
+                                alignment='center',
+                                show_single_page=True)
+
+
+
+
+        return render_template('text_board.html', board_total = board_total, username = username, pagination = pagination, page = page)
 
 
 
@@ -276,51 +289,18 @@ def text_search():
 
 
     search_msg = request.args.get('query')
-    #rows_inc = db_helper.select_every_rows_including_text_from_table('SentenceTable', search_msg)
+
+
+    # 빈 문자열 입력시 모든 Sentence 출력
+    if search_msg.strip() == "":
+        return redirect(url_for('text_board'))
 
     username = session['username']
-
-
-    '''
-    board_search = []
-
-
-    for row in rows_inc:
-        print(row)
-        board_each_line = {}
-
-        board_each_line['sent_id'] = row['sent_id']
-        board_each_line['sent_original'] = row['sent_original']
-        board_each_line['sent_converted'] = row['sent_converted']
-
-        board_each_line['sent_modified_date'] = row['sent_modified_date']
-        if board_each_line['sent_modified_date'] == '0000-00-00 00:00:00':
-            board_each_line['sent_modified_date'] = '-'
-
-        board_each_line['sent_confirm'] = row['sent_confirm']
-        board_each_line['sent_ambiguity'] = row['sent_ambiguity']
-        board_each_line['sent_converted_count'] = row['sent_converted_count']
-        board_each_line['sent_is_added'] = row['sent_is_added']
-
-        board_each_line['article_id'] = row['ArticleTable_article_id']
-
-        article_collected_date = db_helper.select_data_from_table_by_id('article_collected_date', 'ArticleTable', row['ArticleTable_article_id'])
-        board_each_line['article_collected_date'] = article_collected_date
-        if board_each_line['article_collected_date'] == '0000-00-00 00:00:00':
-            board_each_line['article_collected_date'] = '-'
-
-
-        board_search.append(board_each_line)
-    '''
 
 
     page = request.args.get(get_page_parameter(), type=int, default=1)
     per_page = 10
 
-
-    #board_total = db_helper.call_board(page, per_page)
-
-    #total_count = len(rows_inc)
 
 
     board_search = db_helper.call_board_search(page, per_page, search_msg)
@@ -332,16 +312,14 @@ def text_search():
     pagination = Pagination(page=page,
                             per_page=per_page,
                             total=total_count,
-                            record_name='SentenceTable',
+                            record_name='Sentences',
                             bs_version=4,
                             alignment='center',
                             show_single_page=True)
 
 
 
-    return render_template('text_board.html', board_total = board_search, username = username, pagination = pagination)
-
-
+    return render_template('text_board.html', board_total = board_search, username = username, pagination = pagination, page = page)
 
 
 

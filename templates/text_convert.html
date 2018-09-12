@@ -38,6 +38,25 @@
             }
         }
 
+
+        $.urlParam = function(name){
+            var results = new RegExp('[\?&]' + name + '=([^]*)').exec(window.location.href);
+
+            if (results==null){
+               return null;
+            }
+            else{
+               return results[1] || 0;
+            }
+        };
+
+
+        function go_back(){
+            page = $.urlParam('page');
+            //location.href = '/text_board?page=' + page;
+            location.replace('/text_board?page=' + page);
+        }
+
     </script>
 {% endblock %}
 
@@ -89,7 +108,11 @@
             <div class="form-group">
                 <div class="row">
                     <div class="col-md-1">
+                        <!--
                         <input type="button" class="btn btn-danger" id="cancel" name="cancel" onclick="location.href ='/text_board'" value="취소">
+                        -->
+                        <input type="button" class="btn btn-danger" id="cancel" name="cancel" onclick="go_back()" value="취소">
+
                     </div>
 
                     <div class="col-md-1">

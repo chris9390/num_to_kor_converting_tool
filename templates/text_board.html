@@ -6,6 +6,10 @@
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
 
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/solid.js" integrity="sha384-+Ga2s7YBbhOD6nie0DzrZpJes+b2K1xkpKxTFFcx59QmVPaSA8c7pycsNaFwUK6l" crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/fontawesome.js" integrity="sha384-7ox8Q2yzO/uWircfojVuCQOZl+ZZBg2D2J5nkpLqzH1HY0C1dHlTKIbpRz/LG23c" crossorigin="anonymous"></script>
+
+
     <script language="JavaScript">
 
         $(document).ready(function() {
@@ -53,15 +57,36 @@
             location.replace("/text_board/" + id + "/delete");
         }
 
-        function create_text(){
+        function create_text(page){
             //alert('create');
 
-            //location.href = "text_board/create";
-            location.replace("/text_board/create");
+            location.href = "text_board/create?page=" + page;
+            //location.replace("/text_board/create");
         }
 
 
     </script>
+
+    <style>
+        @keyframes fa-blink {
+         0% { opacity: 1; }
+         25% { opacity: 0.25; }
+         50% { opacity: 0.5; }
+         75% { opacity: 0.75; }
+         100% { opacity: 0; }
+        }
+         .fa-blink {
+           -webkit-animation: fa-blink .75s linear infinite;
+           -moz-animation: fa-blink .75s linear infinite;
+           -ms-animation: fa-blink .75s linear infinite;
+           -o-animation: fa-blink .75s linear infinite;
+           animation: fa-blink .75s linear infinite;
+        }
+        .form-inline{
+            width:1000px;
+        }
+
+    </style>
 {% endblock %}
 
 
@@ -74,34 +99,32 @@
 
 
 
-    <div class="navbar navbar-default" role="navigation">
+    <nav class="navbar navbar-expand-md bg-dark navbar-dark" role="navigation">
         <div class="container-fluid">
-                <ul class="nav navbar-nav navbar-right">
-                    <li><a href="#">{{username}}님 접속중...</a></li>
-                    <li><a href="{{url_for('logout')}}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
-                </ul>
+            <form class="form-inline" method="get" action="/text_board/search" role="search">
+                <div class="col-md-10">
+                    <div class="form-group">
+                        <input type="text" class="form-control col-md-12" id="SearchText" name="query" placeholder="Search...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary" value="검색">
+                </div>
+
+            </form>
+
+            <ul class="navbar-nav">
+                <li><a class="nav-link" href="#">{{username}}님 접속중...</a></li>
+                <li><a class="nav-link" href="{{url_for('logout')}}"><i class="fa-blink"><i class="fas fa-sign-out-alt"></i></i> 로그아웃</a></li>
+            </ul>
         </div>
-    </div>
+    </nav>
 
 
 
 
     <div class="container-fluid">
-
-        <p><b>텍스트 검색</b></p>
-
-        <form method="get" action="/text_board/search" role="search">
-            <div class="row">
-                <div class="col-md-5">
-                    <input type="text" class="form-control" id="SearchText" name="query" placeholder="Search...">
-                </div>
-
-                <input type="submit" class="btn btn-primary" value="검색">
-            </div>
-        </form>
-
-        <br><br><br>
-
 
         {{pagination.info}}
         {{pagination.links}}
@@ -111,8 +134,8 @@
                         <th style="width : 5%" class="text-center">번호</th>
                         <th class="text-center">텍스트</th>
                         <th style="width : 7%" class="text-center">기사 번호</th>
-                        <th style="width : 10%" class="text-center">기사 수집일</th>
-                        <th style="width : 10%" class="text-center">텍스트 편집일</th>
+                        <th style="width : 15%" class="text-center">기사 수집일</th>
+                        <th style="width : 15%" class="text-center">텍스트 편집일</th>
                         <th style="width : 7%" class="text-center">수정 횟수</th>
                         <th></th>
                     </tr>
@@ -125,17 +148,27 @@
 
                         {% if row.sent_confirm == 1 %}
                         <td>
-                            <a href="/text_board/{{row.sent_id}}/edit">{{row.sent_converted}}</a>
+                            <a href="/text_board/{{row.sent_id}}/edit?page={{page}}">{{row.sent_converted}}</a>
                         </td>
                         {% else %}
                         <td>
-                            <a href="/text_board/{{row.sent_id}}/edit">{{row.sent_original}}</a>
+                            <a href="/text_board/{{row.sent_id}}/edit?page={{page}}">{{row.sent_original}}</a>
                         </td>
                         {% endif %}
 
                         <td class="text-center">{{row.article_id}}</td>
-                        <td class="text-center">{{row.article_collected_date}}</td>
-                        <td class="text-center">{{row.sent_modified_date}}</td>
+                        {% if row.article_collected_date == '0000-00-00 00:00:00' %}
+                            <td class="text-center">-</td>
+                        {% else %}
+                            <td class="text-center">{{row.article_collected_date}}</td>
+                        {% endif %}
+
+                        {% if row.sent_modified_date == '0000-00-00 00:00:00' %}
+                            <td class="text-center">-</td>
+                        {% else %}
+                            <td class="text-center">{{row.sent_modified_date}}</td>
+                        {% endif %}
+
                         <td class="text-center">{{row.sent_converted_count}}</td>
                         <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="delete_text('{{row.sent_id}}')"></td>
                     </tr>
@@ -147,7 +180,7 @@
 
 
         <div class="text-right">
-            <input type="button" class="btn btn-primary" value="글쓰기" onclick="create_text()">
+            <input type="button" class="btn btn-primary" value="글쓰기" onclick="create_text('{{page}}')">
         </div>
 
     </div>
