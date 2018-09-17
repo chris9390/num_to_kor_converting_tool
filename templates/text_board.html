@@ -24,43 +24,24 @@
 
             });
 
-            /*
-            $("#myTable").DataTable({
-                "stateSave" : true,
-                "searching" : false,
-                "pagingType" : "full_numbers",
-                "columnDefs" : [
-                    {width:"5%", targets:0},
-                    {orderable:false, targets:1},
-                    {width:"7%", targets:2},
-                    {width:"15%", targets:3},
-                    {width:"15%", targets:4},
-                    {width:"7%", targets:5},
-                    {orderable:false, targets:6}
-                ]
-            });
-            */
         });
 
         /*
         function edit_text(id){
-            //alert('edit ' + id);
 
             location.href = "text_board/" + id + "/edit";
         }
         */
 
-        function delete_text(id){
-            //alert('delete ' + id);
+        function delete_text(id, page){
 
             //location.href = "text_board/" + id + "/delete";
-            location.replace("/text_board/" + id + "/delete");
+            location.replace("/text_board/" + id + "/delete?page=" + page);
         }
 
         function create_text(page){
-            //alert('create');
 
-            location.href = "text_board/create?page=" + page;
+            location.href = "/text_board/create?page=" + page;      // GET 방식으로 Login.py의 text_create 함수로 전송
             //location.replace("/text_board/create");
         }
 
@@ -142,7 +123,7 @@
                 </thead>
 
                 <tbody id="myTbody">
-                {% for row in board_total|sort(attribute='sent_id', reverse=True) %}
+                {% for row in board_total|sort(attribute='sent_id') %}
                     <tr>
                         <td class="text-center">{{row.sent_id}}</td>
 
@@ -170,7 +151,7 @@
                         {% endif %}
 
                         <td class="text-center">{{row.sent_converted_count}}</td>
-                        <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="delete_text('{{row.sent_id}}')"></td>
+                        <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="delete_text('{{row.sent_id}}', '{{page}}')"></td>
                     </tr>
                 {% endfor %}
 

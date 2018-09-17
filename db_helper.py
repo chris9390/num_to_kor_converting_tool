@@ -62,100 +62,6 @@ class DB_Helper:
 
         return update_string
 
-    #
-    # 보험상품 테이블 관련 (Products)
-    #
-    def get_products(self):
-        c = self.conn.cursor()
-        c.execute("SELECT * FROM products")
-
-        rows = c.fetchall()
-        return rows
-
-    def get_product(self, id):
-        c = self.conn.cursor()
-        c.execute("SELECT * FROM products WHERE id = %s" % id)
-
-        row = c.fetchone()
-        return row
-
-    def insert_product(self, values):
-        c = self.conn.cursor()
-
-        insert_cols, insert_string = self.generate_insert_key_values(values)
-
-        sql = "INSERT INTO products (%s) VALUES (%s)" % (insert_cols, insert_string)
-        self.print_sql(sql)
-
-        c.execute(sql)
-        self.conn.commit()
-
-        print("Number of rows inserted: %d" % c.rowcount)
-        return
-
-    def update_product(self, id, values):
-        c = self.conn.cursor()
-
-        update_string = self.generate_update_key_values(values)
-
-        sql = "UPDATE products SET %s WHERE id = %s" % (update_string, id)
-        self.print_sql(sql)
-
-        c.execute(sql)
-        self.conn.commit()
-
-        print("Number of rows updated: %d" % c.rowcount)
-        return
-
-    def delete_product(self, id):
-        c = self.conn.cursor()
-        sql = "DELETE FROM products WHERE id = %s" % (id)
-
-        c.execute(sql)
-        self.conn.commit()
-
-        print("Number of rows deleted: %d" % c.rowcount)
-        return
-
-    def get_questions_by_product_id(self, product_id, group_id=None, order_by=None):
-        c = self.conn.cursor()
-        sql = "SELECT * from product_questions as pq left join questions as q on pq.question_id = q.id where product_id = %s" % product_id
-
-        where_clause = ''
-
-        if group_id is not None:
-            where_clause = ' and group_id = %s' % group_id
-
-        if order_by:
-            order_clause = ' ORDER BY `%s` %s' % (order_by[0], order_by[1])
-        else:
-            order_clause = ''
-
-        sql += where_clause + order_clause
-
-        c.execute(sql)
-        rows = c.fetchall()
-        return rows
-
-    def get_questions_from_product(self, product_id, group_id=None):
-        c = self.conn.cursor()
-        sql = "SELECT * FROM questions as q left outer join (SELECT * FROM product_questions WHERE product_id = %s) as pq on q.id = pq.question_id"
-
-        if group_id is None:
-            where_clause = ' WHERE group_id is NULL OR group_id = ""'
-            sql += where_clause
-
-            c.execute(sql % (product_id))
-        else:
-            where_clause = ' WHERE group_id = %s'
-            sql += where_clause
-
-            c.execute(sql % (product_id, group_id))
-
-        rows = c.fetchall()
-        return rows
-
-
 
 
 
@@ -308,10 +214,10 @@ class DB_Helper:
 
 
 
-    def update_sent_ambiguity(self, id):
+    def update_sent_ambiguity(self, value, id):
         c = self.conn.cursor()
 
-        sql = "UPDATE SentenceTable SET sent_ambiguity = 1 WHERE sent_id = %s" % id
+        sql = "UPDATE SentenceTable SET sent_ambiguity = %s WHERE sent_id = %s" % (value, id)
 
         self.print_sql(sql)
 
@@ -377,9 +283,22 @@ class DB_Helper:
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
         limit_start = per_page * (page - 1)
 
-        sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
-        sql += " WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (text, text)
-        sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        if "'" in text:
+            text_replaced = text.replace("'", "''")
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (text_replaced, text_replaced)
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+        elif '"' in text:
+            text_replaced = text.replace('"', '""')
+            sql = 'SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id'
+            sql += ' WHERE (sent_original LIKE "%%%s%%" AND sent_confirm = 0) OR (sent_converted LIKE "%%%s%%" AND sent_confirm = 1)' % (text_replaced, text_replaced)
+            sql += ' LIMIT %s,%s' % (limit_start, per_page)
+        else:
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (text, text)
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+
 
         c.execute(sql)
 

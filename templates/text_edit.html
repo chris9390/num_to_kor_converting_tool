@@ -21,6 +21,13 @@
             });
 
 
+            /*
+            $("#cancel").click(function(){
+                page = $.urlParam('page');
+                //location.href = '/text_board?page=' + page;
+                location.replace('/text_board?page=' + page);
+            });
+            */
 
         });
 
@@ -51,11 +58,7 @@
         };
 
 
-        function go_back(){
-            page = $.urlParam('page');
-            //location.href = '/text_board?page=' + page;
-            location.replace('/text_board?page=' + page);
-        }
+
 
     </script>
 {% endblock %}
@@ -63,16 +66,14 @@
 {% block content %}
     <div class="container">
 
-        <form id="frm" method="post" action="/text_board">
+        <form id="frm" method="post" action="/text_board?page={{page}}">
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
-                    <div class="alert alert-danger" role="alert">
-                        <ul class="flashes">
-                            {% for category, message in messages %}
-                                <li class="{{category}}">{{message}}</li>
-                            {% endfor %}
-                        </ul>
+                    <div class="flashes">
+                        {% for category, message in messages %}
+                            <p class="{{category}} text-center" style="font-size:20px">{{message}}</p>
+                        {% endfor %}
                     </div>
                 {% endif %}
             {% endwith %}
@@ -111,7 +112,7 @@
                         <!--
                         <input type="button" class="btn btn-danger" id="cancel" name="cancel" onclick="location.href ='/text_board'" value="취소">
                         -->
-                        <input type="button" class="btn btn-danger" id="cancel" name="cancel" onclick="go_back()" value="취소">
+                        <input type="button" class="btn btn-danger" id="cancel" name="cancel" onclick="history.back()" value="취소">
 
                     </div>
 

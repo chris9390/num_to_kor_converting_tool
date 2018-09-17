@@ -5,62 +5,66 @@
 {% block content %}
     <div class="container">
         <div id="center">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    <div class="alert alert-success">
-                        <ul class="flashes">
-                            {% for category, message in messages %}
-                                <li class="{{category}}">{{message}}</li>
-                            {% endfor %}
-                        </ul>
+
+
+            <form method="post" action="/login_check">
+
+                <div class="form-group">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="flashes">
+                                {% for category, message in messages %}
+                                <p class="{{category}} col-md-6 text-center" style="font-size:20px">{{message}}</p>
+                                {% endfor %}
+                            </div>
+
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+
+                <div class="form-group">
+                    <div class="page-header">
+                        <h2>로그인 정보를 입력해 주세요</h2>
                     </div>
+                </div>
+
+
+                <div class="form-group form-row">
+                    <label class="col-form-label col-md-1" for="username_id">Username : </label>
+                    <div class="col-md-5">
+                        <input type="text" class="form-control" name="username" id="username_id" placeholder="사용자 이름을 써주세요.">
+                    </div>
+                </div>
+
+
+                <div class="form-group form-row">
+                    <label class="col-form-label col-md-1" for="password_id">Password : </label>
+                    <div class="col-md-5">
+                        <input type="password" class="form-control" name="password" id="password_id" placeholder="비밀번호를 써주세요.">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="offset-md-1 col-lg-2">
+                        <button type="submit" class="btn btn-primary">로그인</button>
+                    </div>
+                </div>
+
+                <!--
+                {% if error_msg %}
+                <div class="form-group">
+                    <div class="offset-md-1 col-md-5">
+                        <div class="alert alert-danger">
+                            {{error_msg}}
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
-        {% endwith %}
+                -->
+            </form>
 
 
-
-
-        <form method="post" action="/login_check">
-
-            <div class="form-group">
-                <div class="page-header">
-                    <h2>로그인 정보를 입력해 주세요</h2>
-                </div>
-            </div>
-
-
-            <div class="form-group form-row">
-                <label class="col-form-label col-md-1" for="username_id">Username : </label>
-                <div class="col-md-5">
-                    <input type="text" class="form-control" name="username" id="username_id" placeholder="사용자 이름을 써주세요.">
-                </div>
-            </div>
-
-
-            <div class="form-group form-row">
-                <label class="col-form-label col-md-1" for="password_id">Password : </label>
-                <div class="col-md-5">
-                    <input type="password" class="form-control" name="password" id="password_id" placeholder="비밀번호를 써주세요.">
-                </div>
-            </div>
-
-            <div class="form-group">
-                <div class="offset-md-1 col-lg-2">
-                    <button type="submit" class="btn btn-primary">로그인</button>
-                </div>
-            </div>
-
-            {% if error_msg %}
-            <div class="form-group">
-                <div class="offset-md-1 col-md-5">
-                    <div class="alert alert-danger">
-                        {{error_msg}}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-        </form>
         </div>
     </div>
 
