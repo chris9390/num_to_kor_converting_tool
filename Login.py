@@ -34,10 +34,16 @@ def reload_board_total():
     cur.execute(sql)
     total_count = cur.fetchone()['total_count']
 
-    page = request.args.get(get_page_parameter(), type=int, default=1)
+    page = request.args.get('page', type=int, default=1)
     per_page = 10
 
-    board_total = db_helper.call_board(page, per_page)
+
+    asc1_desc0 = request.args.get('asc1_desc0')
+    col_name = request.args.get('col_name')
+
+
+    board_total = db_helper.call_board(page, per_page, asc1_desc0, col_name)
+    #board_total = db_helper.call_board(page, per_page)
 
     pagination = Pagination(page=page,
                             per_page=per_page,
@@ -47,7 +53,12 @@ def reload_board_total():
                             alignment='center',
                             show_single_page=True)
 
-    return render_template('text_board.html', board_total=board_total, username=username, pagination=pagination, page=page)
+
+    return render_template('text_board.html',
+                           board_total=board_total,
+                           username=username,
+                           pagination=pagination,
+                           page=page)
 
 
 
@@ -130,9 +141,10 @@ def text_board():
 
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
+        flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
 
-    username = session['username']
+
 
 
     if request.method == 'GET':
@@ -150,7 +162,9 @@ def text_board():
             converted_list = NumberToWord(original_text)
             converted_text = "\n".join(converted_list)
 
-            return render_template('text_edit.html', original_text=original_text, converted_text=converted_text, page=page)
+            page = request.args.get('page')
+
+            return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page)
 
 
         id = session['sent_id']
@@ -180,16 +194,23 @@ def text_board():
 
 
 
-@app.route('/text_board/<id>/edit', methods=['GET'])
-def text_edit(id):
+@app.route('/text_board/edit', methods=['GET'])
+def text_edit():
 
-    session['sent_id'] = id
+    # 로그인된 상태가 아니라면 로그인 페이지로 이동
+    if 'username' not in session.keys():
+        flash('로그인 해주세요.', 'alert-danger')
+        return redirect(url_for('login'))
+
+    page = request.args.get('page')
+    sent_id = request.args.get('sent_id')
+
+    session['sent_id'] = sent_id
 
     print('page' + str(request.args.get('page')))
-    page = request.args.get('page')
 
 
-    original_text = db_helper.select_data_from_table_by_id('sent_original', 'SentenceTable', id)
+    original_text = db_helper.select_data_from_table_by_id('sent_original', 'SentenceTable', sent_id)
 
     converted_list = NumberToWord(original_text)
     converted_text = "\n".join(converted_list)
@@ -198,12 +219,18 @@ def text_edit(id):
     return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page)
 
 
-@app.route('/text_board/<id>/delete', methods=['GET'])
-def text_delete(id):
-
-    db_helper.delete_sent_by_id(id)
+@app.route('/text_board/delete', methods=['GET'])
+def text_delete():
+    # 로그인된 상태가 아니라면 로그인 페이지로 이동
+    if 'username' not in session.keys():
+        flash('로그인 해주세요.', 'alert-danger')
+        return redirect(url_for('login'))
 
     page = request.args.get('page')
+    sent_id = request.args.get('sent_id')
+
+    db_helper.delete_sent_by_sentence_id(sent_id)
+
     print('deleted page : ' + str(page))
 
 
@@ -213,6 +240,14 @@ def text_delete(id):
 @app.route('/text_board/create', methods = ['GET', 'POST'])
 def text_create():
     print(request.method)
+
+
+    # 로그인된 상태가 아니라면 로그인 페이지로 이동
+    if 'username' not in session.keys():
+        flash('로그인 해주세요.', 'alert-danger')
+        return redirect(url_for('login'))
+
+
     page = request.args.get('page')
 
 
@@ -253,6 +288,11 @@ def text_create():
 @app.route('/text_board/search', methods=['GET'])
 def text_search():
 
+    # 로그인된 상태가 아니라면 로그인 페이지로 이동
+    if 'username' not in session.keys():
+        flash('로그인 해주세요.', 'alert-danger')
+        return redirect(url_for('login'))
+
 
     search_msg = request.args.get('query')
     page = request.args.get('page')
@@ -265,7 +305,8 @@ def text_search():
     username = session['username']
 
 
-    page = request.args.get(get_page_parameter(), type=int, default=1)
+    #page = request.args.get(get_page_parameter(), type=int, default=1)
+    page = request.args.get('page', type=int, default=1)
     per_page = 10
 
 
@@ -287,6 +328,16 @@ def text_search():
 
 
     return render_template('text_board.html', board_total = board_search, username = username, pagination = pagination, page = page)
+
+
+
+@app.route('/text_board/order', methods=['GET'])
+def text_order():
+    page = request.args.get('page')
+    col_name = request.args.get('col_name')
+    asc1_desc0 = request.args.get('asc1_desc0')
+
+    return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page))
 
 
 

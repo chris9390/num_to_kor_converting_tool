@@ -103,6 +103,11 @@ class DB_Helper:
         return rows
 
 
+    #def select_every_rows_from_table_order(self, table_name, column_name, order_type):
+
+
+
+
 
     def select_every_rows_from_sentence_by_id(self, id):
         c = self.conn.cursor()
@@ -156,20 +161,21 @@ class DB_Helper:
     def update_sent_converted(self, text, id):
         c = self.conn.cursor()
 
-
+        '''
         if "'" in text:
             text_replaced = text.replace("'", "''")
             sql = "UPDATE SentenceTable SET sent_converted = '%s' WHERE sent_id = %s" % (text_replaced, id)
-
-
         elif '"' in text:
             text_replaced = text.replace('"', '""')
             sql = 'UPDATE SentenceTable SET sent_converted = "%s" WHERE sent_id = %s' % (text_replaced, id)
-
-
         else:
             sql = "UPDATE SentenceTable SET sent_converted = '%s' WHERE sent_id = %s" % (text, id)
+        '''
 
+
+        if "'" in text:
+            text = text.replace("'", "''")
+        sql = 'UPDATE SentenceTable SET sent_converted = \'%s\' WHERE sent_id = %s' % (text, id)
 
 
 
@@ -246,7 +252,7 @@ class DB_Helper:
     # ===============================================================================================
 
 
-    def delete_sent_by_id(self, id):
+    def delete_sent_by_sentence_id(self, id):
         c = self.conn.cursor()
         sql = "DELETE FROM SentenceTable WHERE sent_id = %s" % (id)
 
@@ -259,15 +265,37 @@ class DB_Helper:
     # ===============================================================================================
 
 
-    def call_board(self, page, per_page):
+    def call_board(self, page, per_page, asc1_desc0, col_name):
 
         c = self.conn.cursor()
+
 
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
         limit_start = per_page * (page - 1)
 
+        if asc1_desc0 == '1':
+            ordering = 'ASC'
+
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " ORDER BY %s %s" % (col_name, ordering)
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        elif asc1_desc0 == '0':
+            ordering = 'DESC'
+
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " ORDER BY %s %s" % (col_name, ordering)
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        elif asc1_desc0 == None:
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        '''
         sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+        sql += " ORDER BY %s %s" % (col_name, ordering)
         sql += " LIMIT %s,%s" % (limit_start, per_page)
+        '''
 
         c.execute(sql)
 
@@ -283,7 +311,7 @@ class DB_Helper:
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
         limit_start = per_page * (page - 1)
 
-
+        '''
         if "'" in text:
             text_replaced = text.replace("'", "''")
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
@@ -298,6 +326,15 @@ class DB_Helper:
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (text, text)
             sql += " LIMIT %s,%s" % (limit_start, per_page)
+        '''
+
+
+        if "'" in text:
+            text = text.replace("'", "''")
+        sql = 'SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id'
+        sql += ' WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)' % (text, text)
+        sql += ' LIMIT %s,%s' % (limit_start, per_page)
+
 
 
         c.execute(sql)

@@ -12,31 +12,23 @@
 
     <script language="JavaScript">
 
+
+
         $(document).ready(function() {
 
             $("#mySearch").keyup(function(){
-
                 var value = $(this).val();
 
                 $("#myTbody a:contains('" + value + "')").parent().parent().show();
                 $("#myTbody a:not(:contains('" + value + "'))").parent().parent().hide();
-
-
             });
-
         });
 
-        /*
-        function edit_text(id){
-
-            location.href = "text_board/" + id + "/edit";
-        }
-        */
 
         function delete_text(id, page){
 
             //location.href = "text_board/" + id + "/delete";
-            location.replace("/text_board/" + id + "/delete?page=" + page);
+            location.replace("/text_board/delete?sent_id=" + id + "&page=" + page);
         }
 
         function create_text(page){
@@ -45,8 +37,50 @@
             //location.replace("/text_board/create");
         }
 
+        function order_text(id, page){
+            // 1 이면 오름차순 정렬
+            // 0 이면 내림차순 정렬
+
+            var url = $(location).attr('href');
+            var asc1_desc0 = getParameterByName(url, 'asc1_desc0');
+            var before_selected_col = getParameterByName(url, 'col_name');
+            var ordering = 1;
+
+
+            if(id == before_selected_col){
+                if(asc1_desc0 == 1)
+                    ordering = 0;
+                    
+                else
+                    ordering = 1;
+            }
+            else
+                ordering = 1;
+
+            location.replace("/text_board/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page);
+
+
+        }
+
+
+        function getParameterByName(url, param_name){
+            var after_part = url.split("?")[1];
+            var param_arr = after_part.split("&");
+
+            for(var i = 0 ; i < param_arr.length ; i++)
+            {
+                var key_value = param_arr[i].split("=");
+
+                if(key_value[0] === param_name)
+                {
+                    return key_value[1];
+                }
+            }
+        }
+
 
     </script>
+
 
     <style>
         @keyframes fa-blink {
@@ -112,28 +146,28 @@
             <table class="table table-hover" id="myTable">
                 <thead>
                     <tr>
-                        <th style="width : 5%" class="text-center">번호</th>
+                        <th style="width : 7%" class="text-center">번호<button class="btn" id="sent_id" onclick="order_text(id,'{{page}}')"><i class="fas fa-sort-up"></i></button></th>
                         <th class="text-center">텍스트</th>
-                        <th style="width : 7%" class="text-center">기사 번호</th>
-                        <th style="width : 15%" class="text-center">기사 수집일</th>
-                        <th style="width : 15%" class="text-center">텍스트 편집일</th>
-                        <th style="width : 7%" class="text-center">수정 횟수</th>
+                        <th style="width : 9%" class="text-center">기사 번호<button class="btn" id="article_id" onclick="order_text(id, '{{page}}')"><i class="fas fa-sort-up"></i></button></th>
+                        <th style="width : 15%" class="text-center">기사 수집일<button class="btn" id="article_collected_date" onclick="order_text(id, '{{page}}','{{col_name}}','{{asc1_desc0}}')"><i class="fas fa-sort-up"></i></button></th>
+                        <th style="width : 15%" class="text-center">텍스트 편집일<button class="btn" id="text_modified_date" onclick="order_text(id, '{{page}}','{{col_name}}','{{asc1_desc0}}')"><i class="fas fa-sort-up"></i></button></th>
+                        <th style="width : 9%" class="text-center">수정 횟수<button class="btn" id="sent_converted_count" onclick="order_text(id, '{{page}}','{{col_name}}','{{asc1_desc0}}')"><i class="fas fa-sort-up"></i></button></th>
                         <th></th>
                     </tr>
                 </thead>
 
                 <tbody id="myTbody">
-                {% for row in board_total|sort(attribute='sent_id') %}
+                {% for row in board_total %}
                     <tr>
                         <td class="text-center">{{row.sent_id}}</td>
 
                         {% if row.sent_confirm == 1 %}
                         <td>
-                            <a href="/text_board/{{row.sent_id}}/edit?page={{page}}">{{row.sent_converted}}</a>
+                            <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}">{{row.sent_converted}}</a>
                         </td>
                         {% else %}
                         <td>
-                            <a href="/text_board/{{row.sent_id}}/edit?page={{page}}">{{row.sent_original}}</a>
+                            <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}">{{row.sent_original}}</a>
                         </td>
                         {% endif %}
 

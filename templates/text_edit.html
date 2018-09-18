@@ -32,7 +32,8 @@
         });
 
 
-        function getParameterByName(param_arr, param_name){
+        function getParameterByName(url, param_name){
+            param_arr = url.split("?")[1];
 
             for(var i = 0 ; i < param_arr.length ; i++)
             {
