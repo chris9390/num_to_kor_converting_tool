@@ -42,6 +42,7 @@ def reload_board_total():
     col_name = request.args.get('col_name')
 
 
+
     board_total = db_helper.call_board(page, per_page, asc1_desc0, col_name)
     #board_total = db_helper.call_board(page, per_page)
 
@@ -58,7 +59,9 @@ def reload_board_total():
                            board_total=board_total,
                            username=username,
                            pagination=pagination,
-                           page=page)
+                           page=page,
+                           asc1_desc0=asc1_desc0,
+                           col_name=col_name)
 
 
 
@@ -110,7 +113,7 @@ def login_check():
             session['logged_in'] = True
             session['username'] = request.form['username']
             session['password'] = request.form['password']
-            return redirect(url_for('text_board', page = 1))
+            return redirect(url_for('text_board', page = 1, col_name='sent_id', asc1_desc0='1'))
         else:
             error_msg = '로그인 정보가 맞지 않습니다.'
             flash(error_msg, 'alert-danger')
