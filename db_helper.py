@@ -274,17 +274,13 @@ class DB_Helper:
         limit_start = per_page * (page - 1)
 
         if asc1_desc0 == '1':
-            ordering = 'ASC'
-
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
-            sql += " ORDER BY %s %s" % (col_name, ordering)
+            sql += " ORDER BY %s %s" % (col_name, 'ASC')
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
         elif asc1_desc0 == '0':
-            ordering = 'DESC'
-
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
-            sql += " ORDER BY %s %s" % (col_name, ordering)
+            sql += " ORDER BY %s %s" % (col_name, 'DESC')
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
         elif asc1_desc0 == None:
@@ -304,36 +300,32 @@ class DB_Helper:
 
 
 
-    def call_board_search(self, page, per_page, text):
+    def call_board_search(self, page, per_page, search_msg, asc1_desc0, col_name):
 
         c = self.conn.cursor()
 
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
         limit_start = per_page * (page - 1)
 
-        '''
-        if "'" in text:
-            text_replaced = text.replace("'", "''")
-            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
-            sql += " WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (text_replaced, text_replaced)
-            sql += " LIMIT %s,%s" % (limit_start, per_page)
-        elif '"' in text:
-            text_replaced = text.replace('"', '""')
-            sql = 'SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id'
-            sql += ' WHERE (sent_original LIKE "%%%s%%" AND sent_confirm = 0) OR (sent_converted LIKE "%%%s%%" AND sent_confirm = 1)' % (text_replaced, text_replaced)
-            sql += ' LIMIT %s,%s' % (limit_start, per_page)
-        else:
-            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
-            sql += " WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (text, text)
-            sql += " LIMIT %s,%s" % (limit_start, per_page)
-        '''
+
+        #if "'" in text:
+        #    text = text.replace("'", "''")
 
 
-        if "'" in text:
-            text = text.replace("'", "''")
-        sql = 'SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id'
-        sql += ' WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)' % (text, text)
-        sql += ' LIMIT %s,%s' % (limit_start, per_page)
+        if asc1_desc0 == '1':
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)" % (search_msg, search_msg)
+            sql += " ORDER BY %s %s" % (col_name, 'ASC')
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+        elif asc1_desc0 == '0':
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)" % (search_msg, search_msg)
+            sql += " ORDER BY %s %s" % (col_name, 'DESC')
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+        elif asc1_desc0 == None:
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)" % (search_msg, search_msg)
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
 
 
 

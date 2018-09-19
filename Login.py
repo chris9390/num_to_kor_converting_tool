@@ -26,42 +26,86 @@ db_helper = DB_Helper(conn)
 cur = conn.cursor()
 
 
-def reload_board_total():
+def reload_board_total(search_msg):
 
     username = session['username']
-
-    sql = "SELECT count(*) as total_count FROM SentenceTable"
-    cur.execute(sql)
-    total_count = cur.fetchone()['total_count']
-
-    page = request.args.get('page', type=int, default=1)
-    per_page = 10
+    #search_msg = request.args.get('search_msg')
 
 
-    asc1_desc0 = request.args.get('asc1_desc0')
-    col_name = request.args.get('col_name')
+    # 검색한 게시글 반환
+    if search_msg is not None:
+        print('검색')
+        search_msg_escaped = conn.escape_string(search_msg)
+
+        sql = "SELECT count(*) as total_count FROM SentenceTable " \
+              "WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_original LIKE '%%%s%%' AND sent_confirm = 1)" % (search_msg_escaped, search_msg_escaped)
+        cur.execute(sql)
+        total_count = cur.fetchone()['total_count']
+
+        page = request.args.get('page', type=int, default=1)
+        per_page = 10
+
+        asc1_desc0 = request.args.get('asc1_desc0')
+        col_name = request.args.get('col_name')
+
+        #board_total = db_helper.call_board(page, per_page, asc1_desc0, col_name)
+        board_search = db_helper.call_board_search(page, per_page, search_msg, asc1_desc0, col_name)
+
+        pagination = Pagination(page=page,
+                                per_page=per_page,
+                                total=total_count,
+                                record_name='Sentences',
+                                bs_version=4,
+                                alignment='center',
+                                show_single_page=True)
+
+
+        return render_template('text_board.html',
+                               board_total=board_search,
+                               username=username,
+                               pagination=pagination,
+                               page=page,
+                               search_msg=search_msg,
+                               asc1_desc0=asc1_desc0,
+                               col_name=col_name)
+
+
+    # 게시글 전체 반환
+    else:
+        print('전체')
+        sql = "SELECT count(*) as total_count FROM SentenceTable"
+        cur.execute(sql)
+        total_count = cur.fetchone()['total_count']
+
+        page = request.args.get('page', type=int, default=1)
+        per_page = 10
+
+        print('page: ' + str(page))
+
+        asc1_desc0 = request.args.get('asc1_desc0')
+        col_name = request.args.get('col_name')
 
 
 
-    board_total = db_helper.call_board(page, per_page, asc1_desc0, col_name)
-    #board_total = db_helper.call_board(page, per_page)
+        board_total = db_helper.call_board(page, per_page, asc1_desc0, col_name)
+        #board_total = db_helper.call_board(page, per_page)
 
-    pagination = Pagination(page=page,
-                            per_page=per_page,
-                            total=total_count,
-                            record_name='Sentences',
-                            bs_version=4,
-                            alignment='center',
-                            show_single_page=True)
+        pagination = Pagination(page=page,
+                                per_page=per_page,
+                                total=total_count,
+                                record_name='Sentences',
+                                bs_version=4,
+                                alignment='center',
+                                show_single_page=True)
 
 
-    return render_template('text_board.html',
-                           board_total=board_total,
-                           username=username,
-                           pagination=pagination,
-                           page=page,
-                           asc1_desc0=asc1_desc0,
-                           col_name=col_name)
+        return render_template('text_board.html',
+                               board_total=board_total,
+                               username=username,
+                               pagination=pagination,
+                               page=page,
+                               asc1_desc0=asc1_desc0,
+                               col_name=col_name)
 
 
 
@@ -140,7 +184,7 @@ def change():
 @app.route('/text_board', methods = ['POST', 'GET'])
 def text_board():
     print(request.method + '\t' + request.url)
-
+    search_msg = request.args.get('search_msg')
 
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
@@ -151,11 +195,13 @@ def text_board():
 
 
     if request.method == 'GET':
-        return reload_board_total()
+        #return reload_board_total()
+        return reload_board_total(search_msg)
 
 
 
     elif request.method == 'POST':
+
         if request.form['ORIGINAL'] == '' or request.form['CONVERTED'] == '':
             flash('텍스트를 입력해 주세요.','alert-danger')
 
@@ -192,7 +238,7 @@ def text_board():
         db_helper.update_sent_confirm(id)
 
 
-        return reload_board_total()
+        return reload_board_total(search_msg)
 
 
 
@@ -207,10 +253,10 @@ def text_edit():
 
     page = request.args.get('page')
     sent_id = request.args.get('sent_id')
-
+    search_msg = request.args.get('search_msg')
     session['sent_id'] = sent_id
 
-    print('page' + str(request.args.get('page')))
+    print('edit page' + str(request.args.get('page')))
 
 
     original_text = db_helper.select_data_from_table_by_id('sent_original', 'SentenceTable', sent_id)
@@ -219,7 +265,10 @@ def text_edit():
     converted_text = "\n".join(converted_list)
 
 
-    return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page)
+    if search_msg is not None:
+        return render_template('text_edit.html', original_text=original_text, converted_text=converted_text, page=page, search_msg=search_msg)
+    else:
+        return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page)
 
 
 @app.route('/text_board/delete', methods=['GET'])
@@ -268,7 +317,7 @@ def text_create():
         added_dict = {}
 
         text_create = request.form['text_create']
-        print(text_create)
+        print('created text: ' + text_create)
 
 
         largest_sent_id = db_helper.select_largest_sent_id()
@@ -297,23 +346,24 @@ def text_search():
         return redirect(url_for('login'))
 
 
-    search_msg = request.args.get('query')
-    page = request.args.get('page')
+    search_msg = request.args.get('search_msg')
+    page = 1
 
 
     # 빈 문자열 입력시 모든 Sentence 출력
     if search_msg.strip() == "":
         return redirect(url_for('text_board', page = page))
 
-    username = session['username']
+
+    print("search msg: " + search_msg)
+    print("page: " + str(page))
 
 
-    #page = request.args.get(get_page_parameter(), type=int, default=1)
-    page = request.args.get('page', type=int, default=1)
-    per_page = 10
+    return redirect(url_for('text_board', search_msg=search_msg, page=page))
 
 
 
+    '''
     board_search = db_helper.call_board_search(page, per_page, search_msg)
 
     total_count = len(board_search)
@@ -331,7 +381,7 @@ def text_search():
 
 
     return render_template('text_board.html', board_total = board_search, username = username, pagination = pagination, page = page)
-
+    '''
 
 
 @app.route('/text_board/order', methods=['GET'])
@@ -339,8 +389,14 @@ def text_order():
     page = request.args.get('page')
     col_name = request.args.get('col_name')
     asc1_desc0 = request.args.get('asc1_desc0')
+    search_msg = request.args.get('search_msg')
 
-    return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page))
+    # 검색한 경우 ordering
+    if search_msg is not None:
+        return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, search_msg=search_msg))
+    # 검색하지 않았을 경우 ordering
+    else:
+        return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page))
 
 
 

@@ -57,17 +57,21 @@
                return results[1] || 0;
             }
         };
-
-
-
-
     </script>
 {% endblock %}
 
 {% block content %}
     <div class="container">
 
-        <form id="frm" method="post" action="/text_board?page={{page}}">
+        {% if search_msg is defined %}
+            {% set action = "/text_board?page=" ~ page ~ "&search_msg=" ~ search_msg %}
+        {% else %}
+            {% set action = "/text_board?page=" ~ page %}
+        {% endif %}
+        <form id="frm" method="post" action={{action}}>
+        <!--
+        <form id="frm" method="post" action="/text_board?page={{page}}?search_msg={{search_msg}}">
+        -->
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
