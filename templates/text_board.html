@@ -1,21 +1,18 @@
 {% extends "base.html" %}
-{% block title %}BOARD{% endblock %}
+{% block title %}TEXT BOARD{% endblock %}
 {% block head %}
     {{super()}}
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
-
-    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/solid.js" integrity="sha384-+Ga2s7YBbhOD6nie0DzrZpJes+b2K1xkpKxTFFcx59QmVPaSA8c7pycsNaFwUK6l" crossorigin="anonymous"></script>
-    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/fontawesome.js" integrity="sha384-7ox8Q2yzO/uWircfojVuCQOZl+ZZBg2D2J5nkpLqzH1HY0C1dHlTKIbpRz/LG23c" crossorigin="anonymous"></script>
-
-
     <script language="JavaScript">
-
 
 
         $(document).ready(function() {
         });
+
+
+        function category_search_text(id){
+
+            location.href = "/text_board/cat_search?article_id=" + id;
+        }
 
 
         function delete_text(id, page){
@@ -84,27 +81,8 @@
     </script>
 
 
-    <style>
-        @keyframes fa-blink {
-         0% { opacity: 1; }
-         25% { opacity: 0.25; }
-         50% { opacity: 0.5; }
-         75% { opacity: 0.75; }
-         100% { opacity: 0; }
-        }
-         .fa-blink {
-           -webkit-animation: fa-blink .75s linear infinite;
-           -moz-animation: fa-blink .75s linear infinite;
-           -ms-animation: fa-blink .75s linear infinite;
-           -o-animation: fa-blink .75s linear infinite;
-           animation: fa-blink .75s linear infinite;
-        }
-        .form-inline{
-            width:1000px;
-        }
-
-    </style>
 {% endblock %}
+
 
 
 {% block content %}
@@ -122,7 +100,7 @@
             <form class="form-inline" method="get" action="/text_board/search" role="search">
                 <div class="col-md-10">
                     <div class="form-group">
-                        <input type="text" class="form-control col-md-12" id="SearchText" name="search_msg" placeholder="Search...">
+                        <input type="text" class="form-control col-md-12" id="SearchText" name="search_msg" placeholder="텍스트를 검색해주세요.">
                         <input type="hidden" name="page" value="{{page}}">
                     </div>
                 </div>
@@ -136,150 +114,271 @@
                 <li><a class="nav-link" href="#">{{username}}님 접속중...</a></li>
                 <li><a class="nav-link" href="{{url_for('logout')}}"><i class="fa-blink"><i class="fas fa-sign-out-alt"></i></i> 로그아웃</a></li>
             </ul>
+
         </div>
     </nav>
 
 
 
 
+
     <div class="container-fluid">
 
-        {{pagination.info}}
-        {{pagination.links}}
-            <table class="table table-hover" id="myTable">
-                <thead>
-                    <tr>
-                        <div>
-                        {% set cname_1 = 'fas fa-sort' %}
-                        {% set cname_2 = 'fas fa-sort' %}
-                        {% set cname_3 = 'fas fa-sort' %}
-                        {% set cname_4 = 'fas fa-sort' %}
-                        {% set cname_5 = 'fas fa-sort' %}
+        <div class="row">
+            <div class="col-2">
 
-                        {% if asc1_desc0 == '0' and col_name == 'sent_id' %}
-                            {% set cname_1 = 'fas fa-sort-down' %}
-                            {% set cname_2 = 'fas fa-sort' %}
-                            {% set cname_3 = 'fas fa-sort' %}
-                            {% set cname_4 = 'fas fa-sort' %}
-                            {% set cname_5 = 'fas fa-sort' %}
-                        {% elif asc1_desc0 == '1' and col_name == 'sent_id' %}
-                            {% set cname_1 = 'fas fa-sort-up' %}
-                            {% set cname_2 = 'fas fa-sort' %}
-                            {% set cname_3 = 'fas fa-sort' %}
-                            {% set cname_4 = 'fas fa-sort' %}
-                            {% set cname_5 = 'fas fa-sort' %}
+                <div class="accordion" id="accordion">
+                    <ul class="nav flex-column flex-nowrap">
 
-                        {% elif asc1_desc0 == '0' and col_name == 'article_id' %}
-                            {% set cname_2 = 'fas fa-sort-down' %}
-                            {% set cname_1 = 'fas fa-sort' %}
-                            {% set cname_3 = 'fas fa-sort' %}
-                            {% set cname_4 = 'fas fa-sort' %}
-                            {% set cname_5 = 'fas fa-sort' %}
-                        {% elif asc1_desc0 == '1' and col_name == 'article_id' %}
-                            {% set cname_2 = 'fas fa-sort-up' %}
-                            {% set cname_1 = 'fas fa-sort' %}
-                            {% set cname_3 = 'fas fa-sort' %}
-                            {% set cname_4 = 'fas fa-sort' %}
-                            {% set cname_5 = 'fas fa-sort' %}
+                        <li class="nav-item">
+                            <div class="card">
+                                <div class="card-header">
+                                    <a class="nav-link collapsed" href="#submenu1" data-toggle="collapse">정치 ({{sid1_count['정치']}})</a>
+                                </div>
 
-                        {% elif asc1_desc0 == '0' and col_name == 'article_collected_date' %}
-                            {% set cname_3 = 'fas fa-sort-down' %}
-                            {% set cname_1 = 'fas fa-sort' %}
-                            {% set cname_2 = 'fas fa-sort' %}
-                            {% set cname_4 = 'fas fa-sort' %}
-                            {% set cname_5 = 'fas fa-sort' %}
-                        {% elif asc1_desc0 == '1' and col_name == 'article_collected_date' %}
-                            {% set cname_3 = 'fas fa-sort-up' %}
-                            {% set cname_1 = 'fas fa-sort' %}
-                            {% set cname_2 = 'fas fa-sort' %}
-                            {% set cname_4 = 'fas fa-sort' %}
-                            {% set cname_5 = 'fas fa-sort' %}
+                                <div class="collapse" id="submenu1" data-parent="#accordion">
+                                    <ul class="flex-column pl-2 nav">
+                                        <li class="nav-item"><a class="nav-link" href="#">청와대 ({{sid2_count['청와대']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">국회/정당 ({{sid2_count['국회/정당']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">북한 ({{sid2_count['북한']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">행정 ({{sid2_count['행정']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">국방/외교 ({{sid2_count['국방/외교']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">정치 일반 ({{sid2_count['정치 일반']}})</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
 
-                        {% elif asc1_desc0 == '0' and col_name == 'sent_modified_date' %}
-                            {% set cname_4 = 'fas fa-sort-down' %}
-                            {% set cname_1 = 'fas fa-sort' %}
-                            {% set cname_2 = 'fas fa-sort' %}
-                            {% set cname_3 = 'fas fa-sort' %}
-                            {% set cname_5 = 'fas fa-sort' %}
-                        {% elif asc1_desc0 == '1' and col_name == 'sent_modified_date' %}
-                            {% set cname_4 = 'fas fa-sort-up' %}
-                            {% set cname_1 = 'fas fa-sort' %}
-                            {% set cname_2 = 'fas fa-sort' %}
-                            {% set cname_3 = 'fas fa-sort' %}
-                            {% set cname_5 = 'fas fa-sort' %}
 
-                        {% elif asc1_desc0 == '0' and col_name == 'sent_converted_count' %}
-                            {% set cname_5 = 'fas fa-sort-down' %}
-                            {% set cname_1 = 'fas fa-sort' %}
-                            {% set cname_2 = 'fas fa-sort' %}
-                            {% set cname_3 = 'fas fa-sort' %}
-                            {% set cname_4 = 'fas fa-sort' %}
-                        {% elif asc1_desc0 == '1' and col_name == 'sent_converted_count' %}
-                            {% set cname_5 = 'fas fa-sort-up' %}
-                            {% set cname_1 = 'fas fa-sort' %}
-                            {% set cname_2 = 'fas fa-sort' %}
-                            {% set cname_3 = 'fas fa-sort' %}
-                            {% set cname_4 = 'fas fa-sort' %}
+
+                        <li class="nav-item">
+                            <div class="card">
+                                <div class="card-header">
+                                    <a class="nav-link collapsed" href="#submenu2" data-toggle="collapse">경제 ({{sid1_count['경제']}})</a>
+                                </div>
+
+                                <div class="collapse" id="submenu2" data-parent="#accordion">
+                                    <ul class="flex-column pl-2 nav">
+                                        <li class="nav-item"><a class="nav-link" href="#">금융 ({{sid2_count['금융']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">증권 ({{sid2_count['증권']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">산업/재계 ({{sid2_count['산업/재계']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">중기/벤처 ({{sid2_count['중기/벤처']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">부동산 ({{sid2_count['부동산']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">글로벌 경제 ({{sid2_count['글로벌 경제']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">생활 경제 ({{sid2_count['생활 경제']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">경제 일반 ({{sid2_count['경제 일반']}})</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+
+
+                        <li class="nav-item">
+                            <div class="card">
+                                <div class="card-header">
+                                    <a class="nav-link collapsed" href="#submenu3" data-toggle="collapse">IT/과학 ({{sid1_count['IT/과학']}})</a>
+                                </div>
+
+                                <div class="collapse" id="submenu3" data-parent="#accordion">
+                                    <ul class="flex-column pl-2 nav">
+                                        <li class="nav-item"><a class="nav-link" href="#">모바일 ({{sid2_count['모바일']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="/text_board?sid1='IT/과학'&sid2='인터넷/SNS'">인터넷/SNS ({{sid2_count['인터넷/SNS']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">통신/뉴미디어 ({{sid2_count['통신/뉴미디어']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">IT 일반 ({{sid2_count['IT 일반']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">보안/해킹 ({{sid2_count['보안/해킹']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">컴퓨터 ({{sid2_count['컴퓨터']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">게임/리뷰 ({{sid2_count['게임/리뷰']}})</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="#">과학 일반 ({{sid2_count['과학 일반']}})</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+
+
+
+                        {% if modal == 1 %}
+                        <script>
+                            $(document).ready(function() {
+                                $("#myModal").modal("show");
+                            });
+                        </script>
                         {% endif %}
+
+
+                        <div class="modal fade" id="myModal">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">보고 싶은 기사를 클릭해주세요.</h4>
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        {% for i in article_ids_titles %}
+                                            {% set id = i['article_id'] %}
+                                            <input type="button" onclick="category_search_text('{{id}}')" value="{{i['article_title']}}">
+                                            <br><br>
+                                        {% endfor %}
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal">닫기</button>
+                                    </div>
+
+                                </div>
+                            </div>
                         </div>
-                        <th style="width : 7%" class="text-center">번호<button class="btn" id="sent_id" onclick="order_text(id,'{{page}}')"><i class='{{cname_1}}'></i></button></th>
-                        <th class="text-center">텍스트</th>
-                        <th style="width : 9%" class="text-center">기사 번호<button class="btn" id="article_id" onclick="order_text(id, '{{page}}')"><i class='{{cname_2}}'></i></button></th>
-                        <th style="width : 15%" class="text-center">기사 수집일<button class="btn" id="article_collected_date" onclick="order_text(id, '{{page}}')"><i class='{{cname_3}}'></i></button></th>
-                        <th style="width : 15%" class="text-center">텍스트 편집일<button class="btn" id="sent_modified_date" onclick="order_text(id, '{{page}}')"><i class='{{cname_4}}'></i></button></th>
-                        <th style="width : 9%" class="text-center">수정 횟수<button class="btn" id="sent_converted_count" onclick="order_text(id, '{{page}}')"><i class='{{cname_5}}'></i></button></th>
-                        <th></th>
-                    </tr>
-                </thead>
-
-                <tbody id="myTbody">
-                {% for row in board_total %}
-                    <tr>
-                        <td class="text-center">{{row.sent_id}}</td>
-
-                        {% if row.sent_confirm == 1 %}
-                        <td>
-                            {% if search_msg is defined %}
-                                <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}&search_msg={{search_msg}}">{{row.sent_converted}}</a>
-                            {% else %}
-                                <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}">{{row.sent_converted}}</a>
-                            {% endif %}
-                        </td>
-                        {% else %}
-                        <td>
-                            {% if search_msg is defined %}
-                                <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}&search_msg={{search_msg}}">{{row.sent_original}}</a>
-                            {% else %}
-                                <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}">{{row.sent_original}}</a>
-                            {% endif %}
-                        </td>
-                        {% endif %}
-
-                        <td class="text-center">{{row.article_id}}</td>
-                        {% if row.article_collected_date == '0000-00-00 00:00:00' %}
-                            <td class="text-center">-</td>
-                        {% else %}
-                            <td class="text-center">{{row.article_collected_date}}</td>
-                        {% endif %}
-
-                        {% if row.sent_modified_date == '0000-00-00 00:00:00' %}
-                            <td class="text-center">-</td>
-                        {% else %}
-                            <td class="text-center">{{row.sent_modified_date}}</td>
-                        {% endif %}
-
-                        <td class="text-center">{{row.sent_converted_count}}</td>
-                        <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="delete_text('{{row.sent_id}}', '{{page}}')"></td>
-                    </tr>
-                {% endfor %}
-
-                </tbody>
-            </table>
-        {{pagination.links}}
 
 
-        <div class="text-right">
-            <input type="button" class="btn btn-primary" value="글쓰기" onclick="create_text('{{page}}')">
+
+                    </ul>
+                </div>
+
+            </div>
+
+
+            <div class="col-10">
+                {{pagination.info}}
+                {{pagination.links}}
+                    <table class="table table-hover" id="myTable">
+                        <thead>
+                            <tr>
+                                <div>
+                                {% set cname_1 = 'fas fa-sort' %}
+                                {% set cname_2 = 'fas fa-sort' %}
+                                {% set cname_3 = 'fas fa-sort' %}
+                                {% set cname_4 = 'fas fa-sort' %}
+                                {% set cname_5 = 'fas fa-sort' %}
+
+                                {% if asc1_desc0 == '0' and col_name == 'sent_id' %}
+                                    {% set cname_1 = 'fas fa-sort-down' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                    {% set cname_4 = 'fas fa-sort' %}
+                                    {% set cname_5 = 'fas fa-sort' %}
+                                {% elif asc1_desc0 == '1' and col_name == 'sent_id' %}
+                                    {% set cname_1 = 'fas fa-sort-up' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                    {% set cname_4 = 'fas fa-sort' %}
+                                    {% set cname_5 = 'fas fa-sort' %}
+
+                                {% elif asc1_desc0 == '0' and col_name == 'article_id' %}
+                                    {% set cname_2 = 'fas fa-sort-down' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                    {% set cname_4 = 'fas fa-sort' %}
+                                    {% set cname_5 = 'fas fa-sort' %}
+                                {% elif asc1_desc0 == '1' and col_name == 'article_id' %}
+                                    {% set cname_2 = 'fas fa-sort-up' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                    {% set cname_4 = 'fas fa-sort' %}
+                                    {% set cname_5 = 'fas fa-sort' %}
+
+                                {% elif asc1_desc0 == '0' and col_name == 'article_collected_date' %}
+                                    {% set cname_3 = 'fas fa-sort-down' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_4 = 'fas fa-sort' %}
+                                    {% set cname_5 = 'fas fa-sort' %}
+                                {% elif asc1_desc0 == '1' and col_name == 'article_collected_date' %}
+                                    {% set cname_3 = 'fas fa-sort-up' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_4 = 'fas fa-sort' %}
+                                    {% set cname_5 = 'fas fa-sort' %}
+
+                                {% elif asc1_desc0 == '0' and col_name == 'sent_modified_date' %}
+                                    {% set cname_4 = 'fas fa-sort-down' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                    {% set cname_5 = 'fas fa-sort' %}
+                                {% elif asc1_desc0 == '1' and col_name == 'sent_modified_date' %}
+                                    {% set cname_4 = 'fas fa-sort-up' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                    {% set cname_5 = 'fas fa-sort' %}
+
+                                {% elif asc1_desc0 == '0' and col_name == 'sent_converted_count' %}
+                                    {% set cname_5 = 'fas fa-sort-down' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                    {% set cname_4 = 'fas fa-sort' %}
+                                {% elif asc1_desc0 == '1' and col_name == 'sent_converted_count' %}
+                                    {% set cname_5 = 'fas fa-sort-up' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                    {% set cname_4 = 'fas fa-sort' %}
+                                {% endif %}
+                                </div>
+                                <th style="width : 8%" class="text-center">번호<button class="btn" id="sent_id" onclick="order_text(id,'{{page}}')"><i class='{{cname_1}}'></i></button></th>
+                                <th class="text-center">텍스트</th>
+                                <th style="width : 11%" class="text-center">기사 번호<button class="btn" id="article_id" onclick="order_text(id, '{{page}}')"><i class='{{cname_2}}'></i></button></th>
+                                <th style="width : 15%" class="text-center">기사 수집일<button class="btn" id="article_collected_date" onclick="order_text(id, '{{page}}')"><i class='{{cname_3}}'></i></button></th>
+                                <th style="width : 15%" class="text-center">텍스트 편집일<button class="btn" id="sent_modified_date" onclick="order_text(id, '{{page}}')"><i class='{{cname_4}}'></i></button></th>
+                                <th style="width : 11%" class="text-center">수정 횟수<button class="btn" id="sent_converted_count" onclick="order_text(id, '{{page}}')"><i class='{{cname_5}}'></i></button></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="myTbody">
+                        {% for row in board_total %}
+                            <tr>
+                                <td class="text-center">{{row.sent_id}}</td>
+
+                                {% if row.sent_confirm == 1 %}
+                                <td>
+                                    {% if search_msg is defined %}
+                                        <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}&search_msg={{search_msg}}">{{row.sent_converted}}</a>
+                                    {% else %}
+                                        <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}">{{row.sent_converted}}</a>
+                                    {% endif %}
+                                </td>
+                                {% else %}
+                                <td>
+                                    {% if search_msg is defined %}
+                                        <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}&search_msg={{search_msg}}">{{row.sent_original}}</a>
+                                    {% else %}
+                                        <a href="/text_board/edit?sent_id={{row.sent_id}}&page={{page}}">{{row.sent_original}}</a>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+
+                                <td class="text-center">{{row.article_id}}</td>
+                                {% if row.article_collected_date == '0000-00-00 00:00:00' %}
+                                    <td class="text-center">-</td>
+                                {% else %}
+                                    <td class="text-center">{{row.article_collected_date}}</td>
+                                {% endif %}
+
+                                {% if row.sent_modified_date == '0000-00-00 00:00:00' %}
+                                    <td class="text-center">-</td>
+                                {% else %}
+                                    <td class="text-center">{{row.sent_modified_date}}</td>
+                                {% endif %}
+
+                                <td class="text-center">{{row.sent_converted_count}}</td>
+                                <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="delete_text('{{row.sent_id}}', '{{page}}')"></td>
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                    </table>
+                {{pagination.links}}
+
+
+                <div class="text-right">
+                    <input type="button" class="btn btn-primary" value="글쓰기" onclick="create_text('{{page}}')">
+                </div>
+
+            </div>
+
         </div>
 
     </div>

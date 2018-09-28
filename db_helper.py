@@ -103,7 +103,6 @@ class DB_Helper:
         return rows
 
 
-    #def select_every_rows_from_table_order(self, table_name, column_name, order_type):
 
 
 
@@ -150,6 +149,30 @@ class DB_Helper:
 
         sql = "SELECT * FROM %s WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR " \
                                         "(sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (table_name, text, text)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        return rows
+
+
+
+
+    def select_one_column(self, column_name, table_name):
+        c = self.conn.cursor()
+
+        sql = "SELECT %s FROM %s" % (column_name, table_name)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        return rows
+
+
+    def select_column_with_cond(self, column1, column2, table_name, sid1, sid2):
+        c = self.conn.cursor()
+
+        sql = "SELECT %s, %s FROM %s WHERE article_sid1 = %s and article_sid2 = %s" % (column1, column2, table_name, sid1, sid2)
 
         c.execute(sql)
 
@@ -273,6 +296,7 @@ class DB_Helper:
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
         limit_start = per_page * (page - 1)
 
+
         if asc1_desc0 == '1':
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " ORDER BY %s %s" % (col_name, 'ASC')
@@ -287,11 +311,7 @@ class DB_Helper:
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
-        '''
-        sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
-        sql += " ORDER BY %s %s" % (col_name, ordering)
-        sql += " LIMIT %s,%s" % (limit_start, per_page)
-        '''
+
 
         c.execute(sql)
 
@@ -308,10 +328,6 @@ class DB_Helper:
         limit_start = per_page * (page - 1)
 
 
-        #if "'" in text:
-        #    text = text.replace("'", "''")
-
-
         if asc1_desc0 == '1':
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)" % (search_msg, search_msg)
@@ -327,6 +343,30 @@ class DB_Helper:
             sql += " WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)" % (search_msg, search_msg)
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
+
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        return rows
+
+
+    def call_board_category(self, page, per_page, article_id, asc1_desc0, col_name):
+        c = self.conn.cursor()
+
+        # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
+        limit_start = per_page * (page - 1)
+
+        if asc1_desc0 == '1':
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
+            sql += " ORDER BY %s %s" % (col_name, 'ASC')
+            sql += " LIMIT %s, %s" % (limit_start, per_page)
+        elif asc1_desc0 == '0':
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
+            sql += " ORDER BY %s %s" % (col_name, 'DESC')
+            sql += " LIMIT %s, %s" % (limit_start, per_page)
 
 
         c.execute(sql)

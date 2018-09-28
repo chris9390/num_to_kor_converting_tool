@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.css')}}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="{{url_for('static', filename='js/bootstrap.js')}}"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/solid.js" integrity="sha384-+Ga2s7YBbhOD6nie0DzrZpJes+b2K1xkpKxTFFcx59QmVPaSA8c7pycsNaFwUK6l" crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/fontawesome.js" integrity="sha384-7ox8Q2yzO/uWircfojVuCQOZl+ZZBg2D2J5nkpLqzH1HY0C1dHlTKIbpRz/LG23c" crossorigin="anonymous"></script>
 
     <style>
         html,body{
@@ -32,6 +34,25 @@
         #footer p{
             text-align:center;
         }
+
+        @keyframes fa-blink {
+         0% { opacity: 1; }
+         25% { opacity: 0.25; }
+         50% { opacity: 0.5; }
+         75% { opacity: 0.75; }
+         100% { opacity: 0; }
+        }
+        .fa-blink {
+           -webkit-animation: fa-blink .75s linear infinite;
+           -moz-animation: fa-blink .75s linear infinite;
+           -ms-animation: fa-blink .75s linear infinite;
+           -o-animation: fa-blink .75s linear infinite;
+           animation: fa-blink .75s linear infinite;
+        }
+        .form-inline{
+            width:1000px;
+        }
+
     </style>
 
     {% endblock %}

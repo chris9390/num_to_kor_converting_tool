@@ -21,15 +21,75 @@ conn = pymysql.connect(host='163.239.169.54',
                        charset='utf8',
                        cursorclass=pymysql.cursors.DictCursor)
 
+
 db_helper = DB_Helper(conn)
 
 cur = conn.cursor()
+
+sid1_count = {'정치' : 0, '경제' : 0, '사회' : 0, '생활/문화' : 0, '세계' : 0, 'IT/과학' : 0}
+
+sid2_count = {'청와대' : 0, '국회/정당' : 0, '북한' : 0, '행정' : 0, '국방/외교' : 0, '정치 일반' : 0,
+              '금융' : 0, '증권' : 0, '산업/재계' : 0, '중기/벤처' : 0, '부동산' : 0, '글로벌 경제' : 0, '생활 경제' : 0, '경제 일반' : 0,
+              '사건사고' : 0, '교육' : 0, '노동' : 0, '언론' : 0, '환경' : 0, '인권/복지' : 0, '식품/의료' : 0, '지역' : 0, '인물' : 0, '사회 일반' : 0,
+              '건강정보' : 0, '자동차/시승기' : 0, '도로/교통' : 0, '여행/레저' : 0, '음식/맛집' : 0, '패션/뷰티' : 0, '공연/전시' : 0, '책' : 0, '종교' : 0, '날씨' : 0, '생활문화 일반' : 0,
+              '아시아/호주' : 0, '미국/중남미' : 0, '유럽' : 0, '중동/아프리카' : 0, '세계 일반' : 0,
+              '모바일' : 0, '인터넷/SNS' : 0, '통신/뉴미디어' : 0, 'IT 일반' : 0, '보안/해킹' : 0, '컴퓨터' : 0, '게임/리뷰' : 0, '과학 일반' : 0}
+
 
 
 def reload_board_total(search_msg):
 
     username = session['username']
-    #search_msg = request.args.get('search_msg')
+
+    article_id = request.args.get('article_id')
+
+    sid1 = request.args.get('sid1')
+    sid2 = request.args.get('sid2')
+    print('sid1: ' + str(sid1))
+    print('sid2: ' + str(sid2))
+
+
+    # modal이 1이면 texb_board.html에서 modal창(기사 목록창)을 띄워준다.
+    modal = 0
+    article_ids_titles = []
+    if sid1 is not None and sid2 is not None:
+        modal = 1
+        article_ids_titles = db_helper.select_column_with_cond('article_id','article_title', 'ArticleTable', sid1, sid2)
+
+    print('modal: ' + str(modal))
+
+
+
+
+
+    # 딕셔너리 초기화
+    for i in sid1_count:
+        sid1_count[i] = 0
+    for i in sid2_count:
+        sid2_count[i] = 0
+
+
+
+    # article_sid1 각각의 개수 저장
+    article_sid1_column = db_helper.select_one_column('article_sid1', 'ArticleTable')
+    for row in article_sid1_column:
+        key = row['article_sid1']
+
+        if key != '':
+            sid1_count[key] += 1
+
+
+    # article_sid2 각각의 개수 저장
+    article_sid2_column = db_helper.select_one_column('article_sid2', 'ArticleTable')
+    for row in article_sid2_column:
+        key = row['article_sid2']
+
+        if key != '':
+            sid2_count[key] += 1
+
+
+
+
 
 
     # 검색한 게시글 반환
@@ -48,8 +108,9 @@ def reload_board_total(search_msg):
         asc1_desc0 = request.args.get('asc1_desc0')
         col_name = request.args.get('col_name')
 
-        #board_total = db_helper.call_board(page, per_page, asc1_desc0, col_name)
+
         board_search = db_helper.call_board_search(page, per_page, search_msg, asc1_desc0, col_name)
+
 
         pagination = Pagination(page=page,
                                 per_page=per_page,
@@ -67,7 +128,49 @@ def reload_board_total(search_msg):
                                page=page,
                                search_msg=search_msg,
                                asc1_desc0=asc1_desc0,
-                               col_name=col_name)
+                               col_name=col_name,
+                               sid1_count=sid1_count,
+                               sid2_count=sid2_count,
+                               modal=modal,
+                               article_ids_titles=article_ids_titles)
+
+
+
+    # 카테고리에서 기사 검색한 경우
+    elif article_id is not None:
+        sql = "SELECT COUNT(*) as total_count FROM SentenceTable WHERE ArticleTable_article_id = %s" % article_id
+        cur.execute(sql)
+        total_count = cur.fetchone()['total_count']
+
+        page = request.args.get('page', type=int, default=1)
+        per_page = 10
+
+        asc1_desc0 = request.args.get('asc1_desc0')
+        col_name = request.args.get('col_name')
+
+        board_category = db_helper.call_board_category(page, per_page, article_id, asc1_desc0, col_name)
+
+        pagination = Pagination(page=page,
+                                per_page=per_page,
+                                total=total_count,
+                                record_name='Sentences',
+                                bs_version=4,
+                                alignment='center',
+                                show_single_page=True)
+
+        return render_template('text_board.html',
+                               board_total=board_category,
+                               username=username,
+                               pagination=pagination,
+                               page=page,
+                               asc1_desc0=asc1_desc0,
+                               col_name=col_name,
+                               sid1_count=sid1_count,
+                               sid2_count=sid2_count,
+                               modal=modal,
+                               article_ids_titles=article_ids_titles)
+
+
 
 
     # 게시글 전체 반환
@@ -88,7 +191,7 @@ def reload_board_total(search_msg):
 
 
         board_total = db_helper.call_board(page, per_page, asc1_desc0, col_name)
-        #board_total = db_helper.call_board(page, per_page)
+
 
         pagination = Pagination(page=page,
                                 per_page=per_page,
@@ -105,7 +208,11 @@ def reload_board_total(search_msg):
                                pagination=pagination,
                                page=page,
                                asc1_desc0=asc1_desc0,
-                               col_name=col_name)
+                               col_name=col_name,
+                               sid1_count=sid1_count,
+                               sid2_count=sid2_count,
+                               modal=modal,
+                               article_ids_titles=article_ids_titles)
 
 
 
@@ -195,7 +302,6 @@ def text_board():
 
 
     if request.method == 'GET':
-        #return reload_board_total()
         return reload_board_total(search_msg)
 
 
@@ -229,9 +335,10 @@ def text_board():
             db_helper.update_sent_ambiguity(0, id)
 
 
-
+        # POST method 인 경우 값을 받아오는 방식
         original_text = request.form['ORIGINAL']
         converted_text = request.form['CONVERTED']
+
 
         db_helper.update_sent_converted(converted_text, id)
         db_helper.update_sent_modified_date(id)
@@ -355,6 +462,7 @@ def text_search():
         return redirect(url_for('text_board', page = page))
 
 
+
     print("search msg: " + search_msg)
     print("page: " + str(page))
 
@@ -362,26 +470,6 @@ def text_search():
     return redirect(url_for('text_board', search_msg=search_msg, page=page))
 
 
-
-    '''
-    board_search = db_helper.call_board_search(page, per_page, search_msg)
-
-    total_count = len(board_search)
-    print(total_count)
-
-
-    pagination = Pagination(page=page,
-                            per_page=per_page,
-                            total=total_count,
-                            record_name='Sentences',
-                            bs_version=4,
-                            alignment='center',
-                            show_single_page=True)
-
-
-
-    return render_template('text_board.html', board_total = board_search, username = username, pagination = pagination, page = page)
-    '''
 
 
 @app.route('/text_board/order', methods=['GET'])
@@ -400,6 +488,13 @@ def text_order():
 
 
 
+
+@app.route('/text_board/cat_search', methods=['GET'])
+def text_cat_search():
+    article_id = request.args.get('article_id')
+
+
+    return redirect(url_for('text_board', article_id=article_id))
 
 
 
