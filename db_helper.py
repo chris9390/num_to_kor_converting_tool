@@ -275,15 +275,21 @@ class DB_Helper:
     # ===============================================================================================
 
 
-    def delete_sent_by_sentence_id(self, id):
+    def delete_by_id(self, table_name, id):
         c = self.conn.cursor()
-        sql = "DELETE FROM SentenceTable WHERE sent_id = %s" % (id)
+
+        if table_name == 'ArticleTable':
+            sql = "DELETE FROM ArticleTable WHERE article_id = %s" % id
+        elif table_name == 'SentenceTable':
+            sql = "DELETE FROM SentenceTable WHERE sent_id = %s" % id
 
         c.execute(sql)
         self.conn.commit()
 
         print("Number of rows deleted: %d" % c.rowcount)
         return
+
+
 
     # ===============================================================================================
     def call_every_article(self, page, per_page, asc1_desc0, col_name):
@@ -378,6 +384,33 @@ class DB_Helper:
         return rows
 
 
+    def call_search_article(self, page, per_page, search_msg, asc1_desc0, col_name):
+        c = self.conn.cursor()
+
+        # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
+        limit_start = per_page * (page - 1)
+
+        if asc1_desc0 == '1':
+            sql = "SELECT * FROM ArticleTable"
+            sql += " WHERE article_title LIKE \'%%%s%%\'" % search_msg
+            sql += " ORDER BY %s %s" % (col_name, 'ASC')
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+        elif asc1_desc0 == '0':
+            sql = "SELECT * FROM ArticleTable"
+            sql += " WHERE article_title LIKE \'%%%s%%\'" % search_msg
+            sql += " ORDER BY %s %s" % (col_name, 'DESC')
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+        elif asc1_desc0 == None:
+            sql = "SELECT * FROM ArticleTable"
+            sql += " WHERE article_title LIKE \'%%%s%%\'" % search_msg
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        return rows
+
+
     def call_sentence_by_article_id(self, page, per_page, article_id, asc1_desc0, col_name):
         c = self.conn.cursor()
 
@@ -385,20 +418,48 @@ class DB_Helper:
         limit_start = per_page * (page - 1)
 
         if asc1_desc0 == '1':
-            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST INNER join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
             sql += " ORDER BY %s %s" % (col_name, 'ASC')
             sql += " LIMIT %s, %s" % (limit_start, per_page)
         elif asc1_desc0 == '0':
-            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST INNER join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
             sql += " ORDER BY %s %s" % (col_name, 'DESC')
             sql += " LIMIT %s, %s" % (limit_start, per_page)
         elif asc1_desc0 == None:
-            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST INNER join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
             sql += " LIMIT %s, %s" % (limit_start, per_page)
 
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        return rows
+
+
+
+    def call_article_by_category(self, page, per_page, asc1_desc0, col_name, sid1, sid2):
+        c = self.conn.cursor()
+
+        # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
+        limit_start = per_page * (page - 1)
+
+        if asc1_desc0 == '1':
+            sql = "SELECT * FROM ArticleTable"
+            sql += " WHERE article_sid1 = %s and article_sid2 = %s" % (sid1, sid2)
+            sql += " ORDER BY %s %s" % (col_name, 'ASC')
+            sql += " LIMIT %s, %s" % (limit_start, per_page)
+        elif asc1_desc0 == '0':
+            sql = "SELECT * FROM ArticleTable"
+            sql += " WHERE article_sid1 = %s and article_sid2 = %s" % (sid1, sid2)
+            sql += " ORDER BY %s %s" % (col_name, 'DESC')
+            sql += " LIMIT %s, %s" % (limit_start, per_page)
+        elif asc1_desc0 == None:
+            sql = "SELECT * FROM ArticleTable"
+            sql += " WHERE article_sid1 = %s and article_sid2 = %s" % (sid1, sid2)
+            sql += " LIMIT %s, %s" % (limit_start, per_page)
 
         c.execute(sql)
 

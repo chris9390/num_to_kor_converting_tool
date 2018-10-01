@@ -4,7 +4,7 @@
     {{super()}}
     <script language="JavaScript">
 
-
+        /*
         function delete_text(id, page){
 
             //location.href = "text_board/" + id + "/delete";
@@ -12,7 +12,7 @@
         }
 
 
-        /*
+
         function create_text(page){
 
             location.href = "/text_board/create?page=" + page;      // GET 방식으로 Login.py의 text_create 함수로 전송
@@ -72,6 +72,8 @@
                 }
             }
         }
+
+
     </script>
 {% endblock %}
 
@@ -80,9 +82,10 @@
 {% block content %}
     <div class="container-fluid">
         <div class="page-header">
-            <h2>텍스트 변환 게시판</h2>
+            <h2>텍스트 변환 게시판 [기사 목록]</h2>
         </div>
     </div>
+
 
     <nav class="navbar navbar-expand-md bg-dark navbar-dark" role="navigation">
         <div class="container-fluid">
@@ -112,7 +115,7 @@
 
     <div class="container-fluid">
 
-        <div class="row">
+        <div class="row mt-4">
             <div class="col-2">
                 {% include 'category.html' ignore missing %}
             </div>
@@ -158,7 +161,7 @@
                                 {% endif %}
                                 </div>
 
-                                <th style="width : 8%" class="text-center">번호<button class="btn" id="article_id" onclick="order_text(id,'{{page}}')"><i class='{{cname_1}}'></i></button></th>
+                                <th style="width : 11%" class="text-center">기사 번호<button class="btn" id="article_id" onclick="order_text(id,'{{page}}')"><i class='{{cname_1}}'></i></button></th>
                                 <th class="text-center">기사 제목</th>
                                 <th style="width : 15%" class="text-center">업로드 날짜<button class="btn" id="article_uploaded_date" onclick="order_text(id, '{{page}}')"><i class='{{cname_2}}'></i></button></th>
                                 <th style="width : 15%" class="text-center">수집 날짜<button class="btn" id="article_collected_date" onclick="order_text(id, '{{page}}')"><i class='{{cname_3}}'></i></button></th>
@@ -176,14 +179,13 @@
 
                                 <td><a href="/text_board?article_id={{row.article_id}}">{{row.article_title}}</a></td>
 
-
-                                {% if row.article_uploaded_date == '0000-00-00 00:00:00' %}
+                                {% if row.article_uploaded_date|string == '1900-01-01 00:00:00' %}
                                     <td class="text-center">-</td>
                                 {% else %}
                                     <td class="text-center">{{row.article_uploaded_date}}</td>
                                 {% endif %}
 
-                                {% if row.article_collected_date == '0000-00-00 00:00:00' %}
+                                {% if row.article_collected_date|string == '1900-01-01 00:00:00' %}
                                     <td class="text-center">-</td>
                                 {% else %}
                                     <td class="text-center">{{row.article_collected_date}}</td>
@@ -194,7 +196,7 @@
                                 <td class="text-center">{{row.article_sid2}}</td>
 
 
-                                <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="delete_text('{{row.article_id}}', '{{page}}')"></td>
+                                <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="location.replace('/article_board/delete?article_id={{row.article_id}}&page={{page}}');"></td>
                             </tr>
                         {% endfor %}
 
