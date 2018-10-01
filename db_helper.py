@@ -286,9 +286,36 @@ class DB_Helper:
         return
 
     # ===============================================================================================
+    def call_every_article(self, page, per_page, asc1_desc0, col_name):
+        c = self.conn.cursor()
+
+        # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
+        limit_start = per_page * (page - 1)
 
 
-    def call_board(self, page, per_page, asc1_desc0, col_name):
+        if asc1_desc0 == '1':
+            sql = "SELECT * FROM ArticleTable"
+            sql += " ORDER BY %s %s" % (col_name, 'ASC')
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        elif asc1_desc0 == '0':
+            sql = "SELECT * FROM ArticleTable"
+            sql += " ORDER BY %s %s" % (col_name, 'DESC')
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        elif asc1_desc0 == None:
+            sql = "SELECT * FROM ArticleTable"
+            sql += " LIMIT %s,%s" % (limit_start, per_page)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        return rows
+
+
+
+
+    def call_every_sentence(self, page, per_page, asc1_desc0, col_name):
 
         c = self.conn.cursor()
 
@@ -320,7 +347,7 @@ class DB_Helper:
 
 
 
-    def call_board_search(self, page, per_page, search_msg, asc1_desc0, col_name):
+    def call_search_sentence(self, page, per_page, search_msg, asc1_desc0, col_name):
 
         c = self.conn.cursor()
 
@@ -351,7 +378,7 @@ class DB_Helper:
         return rows
 
 
-    def call_board_category(self, page, per_page, article_id, asc1_desc0, col_name):
+    def call_sentence_by_article_id(self, page, per_page, article_id, asc1_desc0, col_name):
         c = self.conn.cursor()
 
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
@@ -366,6 +393,10 @@ class DB_Helper:
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
             sql += " ORDER BY %s %s" % (col_name, 'DESC')
+            sql += " LIMIT %s, %s" % (limit_start, per_page)
+        elif asc1_desc0 == None:
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
             sql += " LIMIT %s, %s" % (limit_start, per_page)
 
 

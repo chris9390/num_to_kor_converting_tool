@@ -5,16 +5,6 @@
     <script language="JavaScript">
 
 
-        $(document).ready(function() {
-        });
-
-
-        function category_search_text(id){
-
-            location.href = "/text_board/cat_search?article_id=" + id;
-        }
-
-
         function delete_text(id, page){
 
             //location.href = "text_board/" + id + "/delete";
@@ -51,11 +41,13 @@
 
             // 검색한 경우 ordering
             if(search_msg){
-                location.replace("/text_board/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page + "&search_msg=" + search_msg);
+                //location.replace("/text_board/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page + "&search_msg=" + search_msg);
+                location.replace("/" + 'text_board' + "/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page + "&search_msg=" + search_msg);
             }
             // 검색하지 않았을 경우 ordering
             else{
-                location.replace("/text_board/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page);
+                //location.replace("/text_board/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page);
+                location.replace("/" + 'text_board' + "/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page);
             }
 
 
@@ -126,122 +118,14 @@
 
         <div class="row">
             <div class="col-2">
-
-                <div class="accordion" id="accordion">
-                    <ul class="nav flex-column flex-nowrap">
-
-                        <li class="nav-item">
-                            <div class="card">
-                                <div class="card-header">
-                                    <a class="nav-link collapsed" href="#submenu1" data-toggle="collapse">정치 ({{sid1_count['정치']}})</a>
-                                </div>
-
-                                <div class="collapse" id="submenu1" data-parent="#accordion">
-                                    <ul class="flex-column pl-2 nav">
-                                        <li class="nav-item"><a class="nav-link" href="#">청와대 ({{sid2_count['청와대']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">국회/정당 ({{sid2_count['국회/정당']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">북한 ({{sid2_count['북한']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">행정 ({{sid2_count['행정']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">국방/외교 ({{sid2_count['국방/외교']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">정치 일반 ({{sid2_count['정치 일반']}})</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </li>
-
-
-
-                        <li class="nav-item">
-                            <div class="card">
-                                <div class="card-header">
-                                    <a class="nav-link collapsed" href="#submenu2" data-toggle="collapse">경제 ({{sid1_count['경제']}})</a>
-                                </div>
-
-                                <div class="collapse" id="submenu2" data-parent="#accordion">
-                                    <ul class="flex-column pl-2 nav">
-                                        <li class="nav-item"><a class="nav-link" href="#">금융 ({{sid2_count['금융']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">증권 ({{sid2_count['증권']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">산업/재계 ({{sid2_count['산업/재계']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">중기/벤처 ({{sid2_count['중기/벤처']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">부동산 ({{sid2_count['부동산']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">글로벌 경제 ({{sid2_count['글로벌 경제']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">생활 경제 ({{sid2_count['생활 경제']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">경제 일반 ({{sid2_count['경제 일반']}})</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </li>
-
-
-                        <li class="nav-item">
-                            <div class="card">
-                                <div class="card-header">
-                                    <a class="nav-link collapsed" href="#submenu3" data-toggle="collapse">IT/과학 ({{sid1_count['IT/과학']}})</a>
-                                </div>
-
-                                <div class="collapse" id="submenu3" data-parent="#accordion">
-                                    <ul class="flex-column pl-2 nav">
-                                        <li class="nav-item"><a class="nav-link" href="#">모바일 ({{sid2_count['모바일']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="/text_board?sid1='IT/과학'&sid2='인터넷/SNS'">인터넷/SNS ({{sid2_count['인터넷/SNS']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">통신/뉴미디어 ({{sid2_count['통신/뉴미디어']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">IT 일반 ({{sid2_count['IT 일반']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">보안/해킹 ({{sid2_count['보안/해킹']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">컴퓨터 ({{sid2_count['컴퓨터']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">게임/리뷰 ({{sid2_count['게임/리뷰']}})</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="#">과학 일반 ({{sid2_count['과학 일반']}})</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </li>
-
-
-
-                        {% if modal == 1 %}
-                        <script>
-                            $(document).ready(function() {
-                                $("#myModal").modal("show");
-                            });
-                        </script>
-                        {% endif %}
-
-
-                        <div class="modal fade" id="myModal">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">보고 싶은 기사를 클릭해주세요.</h4>
-                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                    </div>
-
-                                    <div class="modal-body">
-                                        {% for i in article_ids_titles %}
-                                            {% set id = i['article_id'] %}
-                                            <input type="button" onclick="category_search_text('{{id}}')" value="{{i['article_title']}}">
-                                            <br><br>
-                                        {% endfor %}
-                                    </div>
-
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-danger" data-dismiss="modal">닫기</button>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                    </ul>
-                </div>
-
+                {% include 'category.html' ignore missing %}
             </div>
 
 
             <div class="col-10">
                 {{pagination.info}}
                 {{pagination.links}}
-                    <table class="table table-hover" id="myTable">
+                    <table class="table table-hover">
                         <thead>
                             <tr>
                                 <div>
@@ -327,7 +211,7 @@
                             </tr>
                         </thead>
 
-                        <tbody id="myTbody">
+                        <tbody>
                         {% for row in board_total %}
                             <tr>
                                 <td class="text-center">{{row.sent_id}}</td>

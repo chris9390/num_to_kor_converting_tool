@@ -37,7 +37,7 @@ sid2_count = {'청와대' : 0, '국회/정당' : 0, '북한' : 0, '행정' : 0, 
 
 
 
-def reload_board_total(search_msg):
+def reload_text_board(search_msg):
 
     username = session['username']
 
@@ -50,6 +50,7 @@ def reload_board_total(search_msg):
 
 
     # modal이 1이면 texb_board.html에서 modal창(기사 목록창)을 띄워준다.
+    '''
     modal = 0
     article_ids_titles = []
     if sid1 is not None and sid2 is not None:
@@ -57,7 +58,7 @@ def reload_board_total(search_msg):
         article_ids_titles = db_helper.select_column_with_cond('article_id','article_title', 'ArticleTable', sid1, sid2)
 
     print('modal: ' + str(modal))
-
+    '''
 
 
 
@@ -109,7 +110,7 @@ def reload_board_total(search_msg):
         col_name = request.args.get('col_name')
 
 
-        board_search = db_helper.call_board_search(page, per_page, search_msg, asc1_desc0, col_name)
+        board_search = db_helper.call_search_sentence(page, per_page, search_msg, asc1_desc0, col_name)
 
 
         pagination = Pagination(page=page,
@@ -130,14 +131,13 @@ def reload_board_total(search_msg):
                                asc1_desc0=asc1_desc0,
                                col_name=col_name,
                                sid1_count=sid1_count,
-                               sid2_count=sid2_count,
-                               modal=modal,
-                               article_ids_titles=article_ids_titles)
+                               sid2_count=sid2_count)
 
 
 
     # 카테고리에서 기사 검색한 경우
     elif article_id is not None:
+        print('카테고리')
         sql = "SELECT COUNT(*) as total_count FROM SentenceTable WHERE ArticleTable_article_id = %s" % article_id
         cur.execute(sql)
         total_count = cur.fetchone()['total_count']
@@ -148,7 +148,7 @@ def reload_board_total(search_msg):
         asc1_desc0 = request.args.get('asc1_desc0')
         col_name = request.args.get('col_name')
 
-        board_category = db_helper.call_board_category(page, per_page, article_id, asc1_desc0, col_name)
+        board_category = db_helper.call_sentence_by_article_id(page, per_page, article_id, asc1_desc0, col_name)
 
         pagination = Pagination(page=page,
                                 per_page=per_page,
@@ -166,9 +166,7 @@ def reload_board_total(search_msg):
                                asc1_desc0=asc1_desc0,
                                col_name=col_name,
                                sid1_count=sid1_count,
-                               sid2_count=sid2_count,
-                               modal=modal,
-                               article_ids_titles=article_ids_titles)
+                               sid2_count=sid2_count)
 
 
 
@@ -190,7 +188,7 @@ def reload_board_total(search_msg):
 
 
 
-        board_total = db_helper.call_board(page, per_page, asc1_desc0, col_name)
+        board_total = db_helper.call_every_sentence(page, per_page, asc1_desc0, col_name)
 
 
         pagination = Pagination(page=page,
@@ -210,9 +208,79 @@ def reload_board_total(search_msg):
                                asc1_desc0=asc1_desc0,
                                col_name=col_name,
                                sid1_count=sid1_count,
-                               sid2_count=sid2_count,
-                               modal=modal,
-                               article_ids_titles=article_ids_titles)
+                               sid2_count=sid2_count)
+
+
+
+
+def reload_article_board(search_msg):
+
+    username = session['username']
+
+    # 딕셔너리 초기화
+    for i in sid1_count:
+        sid1_count[i] = 0
+    for i in sid2_count:
+        sid2_count[i] = 0
+
+    # article_sid1 각각의 개수 저장
+    article_sid1_column = db_helper.select_one_column('article_sid1', 'ArticleTable')
+    for row in article_sid1_column:
+        key = row['article_sid1']
+
+        if key != '':
+            sid1_count[key] += 1
+
+    # article_sid2 각각의 개수 저장
+    article_sid2_column = db_helper.select_one_column('article_sid2', 'ArticleTable')
+    for row in article_sid2_column:
+        key = row['article_sid2']
+
+        if key != '':
+            sid2_count[key] += 1
+
+
+
+    if search_msg is not None:
+        print('검색')
+    else:
+        print('전체')
+        sql = "SELECT count(*) as total_count FROM ArticleTable"
+        cur.execute(sql)
+        total_count = cur.fetchone()['total_count']
+
+        # '추가' row 때문에 하나 뺴줘야한다.
+        total_count = total_count - 1
+
+        page = request.args.get('page', type=int, default=1)
+        per_page = 10
+
+        print('page: ' + str(page))
+
+        asc1_desc0 = request.args.get('asc1_desc0')
+        col_name = request.args.get('col_name')
+
+        board_total = db_helper.call_every_article(page, per_page, asc1_desc0, col_name)
+
+        pagination = Pagination(page=page,
+                                per_page=per_page,
+                                total=total_count,
+                                record_name='Articles',
+                                bs_version=4,
+                                alignment='center',
+                                show_single_page=True)
+
+        return render_template('article_board.html',
+                               board_total=board_total,
+                               username=username,
+                               pagination=pagination,
+                               page=page,
+                               asc1_desc0=asc1_desc0,
+                               col_name=col_name,
+                               sid1_count=sid1_count,
+                               sid2_count=sid2_count)
+
+
 
 
 
@@ -264,7 +332,8 @@ def login_check():
             session['logged_in'] = True
             session['username'] = request.form['username']
             session['password'] = request.form['password']
-            return redirect(url_for('text_board', page = 1, col_name='sent_id', asc1_desc0='1'))
+            #return redirect(url_for('text_board', page = 1, col_name='sent_id', asc1_desc0='1'))
+            return redirect(url_for('article_board', page = 1, col_name='article_id', asc1_desc0='1'))
         else:
             error_msg = '로그인 정보가 맞지 않습니다.'
             flash(error_msg, 'alert-danger')
@@ -302,7 +371,7 @@ def text_board():
 
 
     if request.method == 'GET':
-        return reload_board_total(search_msg)
+        return reload_text_board(search_msg)
 
 
 
@@ -336,7 +405,6 @@ def text_board():
 
 
         # POST method 인 경우 값을 받아오는 방식
-        original_text = request.form['ORIGINAL']
         converted_text = request.form['CONVERTED']
 
 
@@ -345,7 +413,69 @@ def text_board():
         db_helper.update_sent_confirm(id)
 
 
-        return reload_board_total(search_msg)
+        return reload_text_board(search_msg)
+
+
+
+
+@app.route('/article_board', methods = ['POST', 'GET'])
+def article_board():
+    print(request.method + '\t' + request.url)
+    search_msg = request.args.get('search_msg')
+
+    # 로그인된 상태가 아니라면 로그인 페이지로 이동
+    if 'username' not in session.keys():
+        flash('로그인 해주세요.', 'alert-danger')
+        return redirect(url_for('login'))
+
+
+
+    if request.method == 'GET':
+        #return reload_text_board(search_msg)
+        return reload_article_board(search_msg)
+
+
+
+    elif request.method == 'POST':
+
+        if request.form['ORIGINAL'] == '' or request.form['CONVERTED'] == '':
+            flash('텍스트를 입력해 주세요.','alert-danger')
+
+            id = session['sent_id']
+            original_text = db_helper.select_data_from_table_by_id('sent_original', 'SentenceTable', id)
+
+            converted_list = NumberToWord(original_text)
+            converted_text = "\n".join(converted_list)
+
+            page = request.args.get('page')
+
+            return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page)
+
+
+        id = session['sent_id']
+
+        sent_converted_count = db_helper.select_data_from_table_by_id('sent_converted_count','SentenceTable', id)
+        sent_converted_count = sent_converted_count + 1
+        db_helper.update_sent_converted_count(sent_converted_count, id)
+
+
+        if 'ambiguity' in request.form:
+            db_helper.update_sent_ambiguity(1, id)
+        else:
+            db_helper.update_sent_ambiguity(0, id)
+
+
+        # POST method 인 경우 값을 받아오는 방식
+        converted_text = request.form['CONVERTED']
+
+
+        db_helper.update_sent_converted(converted_text, id)
+        db_helper.update_sent_modified_date(id)
+        db_helper.update_sent_confirm(id)
+
+
+        return reload_text_board(search_msg)
+
 
 
 
@@ -472,19 +602,41 @@ def text_search():
 
 
 
-@app.route('/text_board/order', methods=['GET'])
-def text_order():
+#@app.route('/text_board/order', methods=['GET'])
+@app.route('/<board_type>/order', methods=['GET'])
+def order(board_type):
     page = request.args.get('page')
     col_name = request.args.get('col_name')
     asc1_desc0 = request.args.get('asc1_desc0')
     search_msg = request.args.get('search_msg')
 
-    # 검색한 경우 ordering
-    if search_msg is not None:
-        return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, search_msg=search_msg))
-    # 검색하지 않았을 경우 ordering
-    else:
-        return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page))
+
+    if board_type == 'article_board':
+        article_flag = 1
+        text_flag = 0
+    elif board_type == 'text_board':
+        text_flag = 1
+        article_flag = 0
+
+
+
+    if article_flag == 1:
+        # 검색한 경우 ordering
+        if search_msg is not None:
+            return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg))
+        # 검색하지 않았을 경우 ordering
+        else:
+            return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page))
+
+    elif text_flag == 1:
+        # 검색한 경우 ordering
+        if search_msg is not None:
+            return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, search_msg=search_msg))
+        # 검색하지 않았을 경우 ordering
+        else:
+            return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page))
+
+
 
 
 

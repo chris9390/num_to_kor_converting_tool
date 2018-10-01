@@ -1,8 +1,80 @@
 {% extends "base.html" %}
 {% block title %}ARTICLE BOARD{% endblock %}
+{% block head %}
     {{super()}}
+    <script language="JavaScript">
 
+
+        function delete_text(id, page){
+
+            //location.href = "text_board/" + id + "/delete";
+            location.replace("/text_board/delete?sent_id=" + id + "&page=" + page);
+        }
+
+
+        /*
+        function create_text(page){
+
+            location.href = "/text_board/create?page=" + page;      // GET 방식으로 Login.py의 text_create 함수로 전송
+            //location.replace("/text_board/create");
+        }
+        */
+
+
+        function order_text(id, page){
+            // 1 이면 오름차순 정렬
+            // 0 이면 내림차순 정렬
+            var url = $(location).attr('href');
+            var asc1_desc0 = getParameterByName(url, 'asc1_desc0');
+            var search_msg = getParameterByName(url, 'search_msg');
+            var before_selected_col = getParameterByName(url, 'col_name');
+            var ordering = 1;
+
+            if(id == before_selected_col){
+                if(asc1_desc0 == 1) {
+                    ordering = 0;
+                }
+                else {
+                    ordering = 1;
+                }
+            }
+            else {
+                ordering = 1;
+            }
+
+
+            // 검색한 경우 ordering
+            if(search_msg){
+                //location.replace("/text_board/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page + "&search_msg=" + search_msg);
+                location.replace("/" + 'article_board' + "/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page + "&search_msg=" + search_msg);
+            }
+            // 검색하지 않았을 경우 ordering
+            else{
+                //location.replace("/text_board/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page);
+                location.replace("/" + 'article_board' + "/order?col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page);
+            }
+
+
+        }
+
+
+        function getParameterByName(url, param_name){
+            var after_part = url.split("?")[1];
+            var param_arr = after_part.split("&");
+
+            for(var i = 0 ; i < param_arr.length ; i++)
+            {
+                var key_value = param_arr[i].split("=");
+
+                if(key_value[0] === param_name)
+                {
+                    return key_value[1];
+                }
+            }
+        }
+    </script>
 {% endblock %}
+
 
 
 {% block content %}
@@ -38,6 +110,105 @@
 
 
 
+    <div class="container-fluid">
+
+        <div class="row">
+            <div class="col-2">
+                {% include 'category.html' ignore missing %}
+            </div>
+
+
+            <div class="col-10">
+                {{pagination.info}}
+                {{pagination.links}}
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <div>
+                                {% set cname_1 = 'fas fa-sort' %}
+                                {% set cname_2 = 'fas fa-sort' %}
+                                {% set cname_3 = 'fas fa-sort' %}
+
+                                {% if asc1_desc0 == '0' and col_name == 'article_id' %}
+                                    {% set cname_1 = 'fas fa-sort-down' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                {% elif asc1_desc0 == '1' and col_name == 'article_id' %}
+                                    {% set cname_1 = 'fas fa-sort-up' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+
+                                {% elif asc1_desc0 == '0' and col_name == 'article_uploaded_date' %}
+                                    {% set cname_2 = 'fas fa-sort-down' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+                                {% elif asc1_desc0 == '1' and col_name == 'article_uploaded_date' %}
+                                    {% set cname_2 = 'fas fa-sort-up' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_3 = 'fas fa-sort' %}
+
+                                {% elif asc1_desc0 == '0' and col_name == 'article_collected_date' %}
+                                    {% set cname_3 = 'fas fa-sort-down' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                {% elif asc1_desc0 == '1' and col_name == 'article_collected_date' %}
+                                    {% set cname_3 = 'fas fa-sort-up' %}
+                                    {% set cname_1 = 'fas fa-sort' %}
+                                    {% set cname_2 = 'fas fa-sort' %}
+                                {% endif %}
+                                </div>
+
+                                <th style="width : 8%" class="text-center">번호<button class="btn" id="article_id" onclick="order_text(id,'{{page}}')"><i class='{{cname_1}}'></i></button></th>
+                                <th class="text-center">기사 제목</th>
+                                <th style="width : 15%" class="text-center">업로드 날짜<button class="btn" id="article_uploaded_date" onclick="order_text(id, '{{page}}')"><i class='{{cname_2}}'></i></button></th>
+                                <th style="width : 15%" class="text-center">수집 날짜<button class="btn" id="article_collected_date" onclick="order_text(id, '{{page}}')"><i class='{{cname_3}}'></i></button></th>
+                                <th style="width : 10%" class="text-center">대분류</th>
+                                <th style="width : 10%" class="text-center">소분류</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                        {% for row in board_total %}
+                            <tr>
+                                <td class="text-center">{{row.article_id}}</td>
+
+
+                                <td><a href="/text_board?article_id={{row.article_id}}">{{row.article_title}}</a></td>
+
+
+                                {% if row.article_uploaded_date == '0000-00-00 00:00:00' %}
+                                    <td class="text-center">-</td>
+                                {% else %}
+                                    <td class="text-center">{{row.article_uploaded_date}}</td>
+                                {% endif %}
+
+                                {% if row.article_collected_date == '0000-00-00 00:00:00' %}
+                                    <td class="text-center">-</td>
+                                {% else %}
+                                    <td class="text-center">{{row.article_collected_date}}</td>
+                                {% endif %}
+
+
+                                <td class="text-center">{{row.article_sid1}}</td>
+                                <td class="text-center">{{row.article_sid2}}</td>
+
+
+                                <td class="text-center"><input type="button" class="btn btn-danger btn-sm" id="delete" value="삭제" onclick="delete_text('{{row.article_id}}', '{{page}}')"></td>
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                    </table>
+                {{pagination.links}}
+
+
+
+            </div>
+
+        </div>
+
+    </div>
 
 
 

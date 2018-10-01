@@ -20,31 +20,8 @@
 
             });
 
-
-            /*
-            $("#cancel").click(function(){
-                page = $.urlParam('page');
-                //location.href = '/text_board?page=' + page;
-                location.replace('/text_board?page=' + page);
-            });
-            */
-
         });
 
-
-        function getParameterByName(url, param_name){
-            param_arr = url.split("?")[1];
-
-            for(var i = 0 ; i < param_arr.length ; i++)
-            {
-                var key_value = param_arr[i].split("=");
-
-                if(key_value[0] === param_name)
-                {
-                    return key_value[1];
-                }
-            }
-        }
 
 
         $.urlParam = function(name){
@@ -59,6 +36,7 @@
         };
     </script>
 {% endblock %}
+
 
 {% block content %}
     <div class="container">
