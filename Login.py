@@ -37,6 +37,8 @@ sid2_count = {'청와대' : 0, '국회/정당' : 0, '북한' : 0, '행정' : 0, 
 
 
 
+
+
 def reload_text_board(search_msg):
 
     username = session['username']
@@ -374,9 +376,9 @@ def text_board():
 
         # POST method 인 경우 값을 받아오는 방식
         converted_text = request.form['CONVERTED']
+        converted_text_escaped = conn.escape_string(converted_text)
 
-
-        db_helper.update_sent_converted(converted_text, id)
+        db_helper.update_sent_converted(converted_text_escaped, id)
         db_helper.update_sent_modified_date(id)
         db_helper.update_sent_confirm(id)
 
