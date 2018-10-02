@@ -53,6 +53,22 @@
             width:1000px;
         }
 
+        .navbar {
+            min-height:50px;
+        }
+
+        .card-header {
+            background-color:#384958;
+        }
+
+        .card-header>a {
+            color:white;
+        }
+
+        .flex-column {
+            background-color:white;
+        }
+
     </style>
 
     {% endblock %}
@@ -60,7 +76,25 @@
 
 <body>
     <div id="body">
-        <div id="content">{% block content %}{% endblock %}</div>
+        <div id="content">
+
+            <div class="container-fluid">
+                <div class="page-header">
+                    <h1>Crawl articles and Convert articles</h1>
+                </div>
+            </div>
+
+
+            <nav class="navbar navbar-expand-md bg-dark navbar-dark" role="navigation">
+                <div class="container-fluid">
+                    {% block nav %}{% endblock %}
+                </div>
+            </nav>
+
+            {% block content %}{% endblock %}
+
+        </div>
+
         <div id="footer">
             <p>Made by: Kim Young-in</p>
             <p>Contact information: <a href="mailto:chris9390@naver.com">chris9390@naver.com</a></p>

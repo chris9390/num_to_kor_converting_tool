@@ -42,7 +42,6 @@ def reload_text_board(search_msg):
     username = session['username']
     article_id = request.args.get('article_id')
 
-
     # 딕셔너리 초기화
     for i in sid1_count:
         sid1_count[i] = 0
@@ -73,6 +72,7 @@ def reload_text_board(search_msg):
 
     # 공통 코드 ==========================================
     page = request.args.get('page', type=int, default=1)
+    article_board_page = request.args.get('article_board_page')
     per_page = 10
 
     asc1_desc0 = request.args.get('asc1_desc0')
@@ -111,7 +111,9 @@ def reload_text_board(search_msg):
                                asc1_desc0=asc1_desc0,
                                col_name=col_name,
                                sid1_count=sid1_count,
-                               sid2_count=sid2_count)
+                               sid2_count=sid2_count,
+                               article_id=article_id,
+                               article_board_page=article_board_page)
 
 
     # 특정 기사를 클릭한 경우
@@ -142,7 +144,9 @@ def reload_text_board(search_msg):
                                col_name=col_name,
                                sid1_count=sid1_count,
                                sid2_count=sid2_count,
-                               article_title=article_title)
+                               article_title=article_title,
+                               article_id=article_id,
+                               article_board_page=article_board_page)
 
 
 
@@ -173,7 +177,9 @@ def reload_text_board(search_msg):
                                asc1_desc0=asc1_desc0,
                                col_name=col_name,
                                sid1_count=sid1_count,
-                               sid2_count=sid2_count)
+                               sid2_count=sid2_count,
+                               article_id=article_id,
+                               article_board_page=article_board_page)
 
 
 
@@ -191,6 +197,7 @@ def reload_article_board(search_msg):
         sid1_count[i] = 0
     for i in sid2_count:
         sid2_count[i] = 0
+
 
     # article_sid1 각각의 개수 저장
     article_sid1_column = db_helper.select_one_column('article_sid1', 'ArticleTable')
@@ -327,6 +334,7 @@ def text_board():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
 
+    username = session['username']
 
 
 
@@ -348,7 +356,7 @@ def text_board():
 
             page = request.args.get('page')
 
-            return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page)
+            return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page, username=username)
 
 
         id = session['sent_id']
@@ -378,7 +386,7 @@ def text_board():
 
 
 
-@app.route('/article_board', methods = ['POST', 'GET'])
+@app.route('/article_board', methods = ['GET'])
 def article_board():
     print(request.method + '\t' + request.url)
     search_msg = request.args.get('search_msg')
@@ -389,51 +397,13 @@ def article_board():
         return redirect(url_for('login'))
 
 
-
     if request.method == 'GET':
         return reload_article_board(search_msg)
+    else:
+        return '잘못된 접근'
 
 
 
-    elif request.method == 'POST':
-
-        if request.form['ORIGINAL'] == '' or request.form['CONVERTED'] == '':
-            flash('텍스트를 입력해 주세요.','alert-danger')
-
-            id = session['sent_id']
-            original_text = db_helper.select_data_from_table_by_id('sent_original', 'SentenceTable', id)
-
-            converted_list = NumberToWord(original_text)
-            converted_text = "\n".join(converted_list)
-
-            page = request.args.get('page')
-
-            return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page)
-
-
-        id = session['sent_id']
-
-        sent_converted_count = db_helper.select_data_from_table_by_id('sent_converted_count','SentenceTable', id)
-        sent_converted_count = sent_converted_count + 1
-        db_helper.update_sent_converted_count(sent_converted_count, id)
-
-
-        if 'ambiguity' in request.form:
-            db_helper.update_sent_ambiguity(1, id)
-        else:
-            db_helper.update_sent_ambiguity(0, id)
-
-
-        # POST method 인 경우 값을 받아오는 방식
-        converted_text = request.form['CONVERTED']
-
-
-        db_helper.update_sent_converted(converted_text, id)
-        db_helper.update_sent_modified_date(id)
-        db_helper.update_sent_confirm(id)
-
-
-        return reload_text_board(search_msg)
 
 
 
@@ -442,17 +412,24 @@ def article_board():
 @app.route('/text_board/edit', methods=['GET'])
 def text_edit():
 
+
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
 
+    username = session['username']
+
+
     page = request.args.get('page')
     sent_id = request.args.get('sent_id')
+    article_id = request.args.get('article_id')
     search_msg = request.args.get('search_msg')
     session['sent_id'] = sent_id
 
+    print(request.url)
     print('edit page' + str(request.args.get('page')))
+    print('article id: ' + str(article_id))
 
 
     original_text = db_helper.select_data_from_table_by_id('sent_original', 'SentenceTable', sent_id)
@@ -462,29 +439,36 @@ def text_edit():
 
 
     if search_msg is not None:
-        return render_template('text_edit.html', original_text=original_text, converted_text=converted_text, page=page, search_msg=search_msg)
+        return render_template('text_edit.html', original_text=original_text, converted_text=converted_text, page=page, search_msg=search_msg, article_id=article_id, username=username)
     else:
-        return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page)
+        return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page, article_id=article_id, username=username)
 
 
-@app.route('/<board_type>/delete', methods=['GET'])
+#@app.route('/<board_type>/delete', methods=['GET'])
+@app.route('/<board_type>/delete', methods=['POST'])
 def delete(board_type):
+    print(request.url)
+    print(request.method)
+
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
 
 
-    page = request.args.get('page')
-    sent_id = request.args.get('sent_id')
-    article_id = request.args.get('article_id')
-
-
     if board_type == 'article_board':
+        # POST method 받아오는 방법
+        page = request.form['page']
+        article_id = request.form['article_id']
+
         db_helper.delete_by_id('ArticleTable', article_id)
         return redirect(url_for('article_board', page=page))
 
     elif board_type == 'text_board':
+        # POST method 받아오는 방법
+        page = request.form['page']
+        sent_id = request.form['sent_id']
+
         db_helper.delete_by_id('SentenceTable',sent_id)
         return redirect(url_for('text_board', page=page))
 
@@ -495,29 +479,30 @@ def delete(board_type):
 def text_create():
     print(request.method)
 
-
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
 
+    username = session['username']
 
     page = request.args.get('page')
 
 
     if request.method == 'GET':
-        return render_template('text_create.html', page = page)
+        return render_template('text_create.html', page = page, username=username)
 
 
 
     elif request.method == 'POST':
         if request.form['text_create'] == '':
             flash('텍스트를 입력해주세요.', 'alert-danger')
-            return render_template('text_create.html', page = page)
-            #return redirect(url_for('text_create'))
+            return render_template('text_create.html', page = page, username=username)
+
 
         added_dict = {}
 
+        # POST 방식으로 보낸 정보 받아오기
         text_create = request.form['text_create']
         print('created text: ' + text_create)
 
@@ -536,10 +521,9 @@ def text_create():
         db_helper.insert_new_text(added_dict)
 
 
-        return redirect(url_for('text_board', page = page))
+        return redirect(url_for('text_board', page = page, username=username))
 
 
-#@app.route('/text_board/search', methods=['GET'])
 @app.route('/<board_type>/search', methods=['GET'])
 def search(board_type):
 
@@ -549,8 +533,9 @@ def search(board_type):
         return redirect(url_for('login'))
 
 
+    article_id = request.args.get('article_id')
     search_msg = request.args.get('search_msg')
-    page = 1
+    page = request.args.get('page')
 
 
     # 빈 문자열 입력시 모든 Sentence 출력
@@ -561,6 +546,7 @@ def search(board_type):
             return redirect(url_for('text_board', page = page))
 
 
+    print('article id: ' + str(article_id))
     print("search msg: " + search_msg)
     print("page: " + str(page))
 
@@ -568,12 +554,11 @@ def search(board_type):
     if board_type == 'article_board':
         return redirect(url_for('article_board', search_msg=search_msg, page=page))
     elif board_type == 'text_board':
-        return redirect(url_for('text_board', search_msg=search_msg, page=page))
+        return redirect(url_for('text_board', search_msg=search_msg, page=page, article_id=article_id))
 
 
 
 
-#@app.route('/text_board/order', methods=['GET'])
 @app.route('/<board_type>/order', methods=['GET'])
 def order(board_type):
 
@@ -582,11 +567,11 @@ def order(board_type):
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
 
-
     page = request.args.get('page')
     col_name = request.args.get('col_name')
     asc1_desc0 = request.args.get('asc1_desc0')
     search_msg = request.args.get('search_msg')
+    article_id = request.args.get('article_id')
 
 
     if board_type == 'article_board':
@@ -600,22 +585,15 @@ def order(board_type):
     elif board_type == 'text_board':
         # 검색한 경우 ordering
         if search_msg is not None:
-            return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, search_msg=search_msg))
+            return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, search_msg=search_msg, article_id=article_id))
         # 검색하지 않았을 경우 ordering
         else:
-            return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page))
+            return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, article_id=article_id))
 
 
 
 
 
-
-@app.route('/text_board/cat_search', methods=['GET'])
-def text_cat_search():
-    article_id = request.args.get('article_id')
-
-
-    return redirect(url_for('text_board', article_id=article_id))
 
 
 
