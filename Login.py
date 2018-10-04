@@ -40,7 +40,6 @@ class user_class:
 
     @classmethod
     def get(cls, user_id):
-        user_id = user_id
         pw_hash = users[user_id].pw_hash
         return cls(user_id, pw_hash)
 
@@ -55,6 +54,7 @@ USERS = {
 '''
 
 
+'''
 conn = pymysql.connect(host='163.239.169.54',
                        port=3306,
                        user='s20131533',
@@ -63,6 +63,7 @@ conn = pymysql.connect(host='163.239.169.54',
                        charset='utf8',
                        cursorclass=pymysql.cursors.DictCursor)
 db_helper = DB_Helper(conn)
+'''
 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
@@ -78,15 +79,27 @@ sid2_count = {'청와대' : 0, '국회/정당' : 0, '북한' : 0, '행정' : 0, 
               '모바일' : 0, '인터넷/SNS' : 0, '통신/뉴미디어' : 0, 'IT 일반' : 0, '보안/해킹' : 0, '컴퓨터' : 0, '게임/리뷰' : 0, '과학 일반' : 0}
 
 
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = pymysql.connect(host='163.239.169.54',
+                             port=3306,
+                             user='s20131533',
+                             passwd='s20131533',
+                             db='number_to_word',
+                             charset='utf8',
+                             cursorclass=pymysql.cursors.DictCursor)
+
+    else:
+        db.ping()
+
+    return db
+
+
 @login_manager.user_loader
 def user_loader(user_id):
     # return USERS[user_id]
      return user_class.get(user_id)
-
-
-@app.route('/login')
-def login():
-    return render_template('login_form.html')
 
 
 @app.route('/logout')
@@ -101,11 +114,15 @@ def logout():
     flask_login.logout_user()
 
     flash('로그아웃 되었습니다.', 'alert-success')
-    return redirect(url_for('login'))
+    #return redirect(url_for('login'))
+    return render_template('login_form.html')
 
 
 @app.route('/login_check', methods=['POST', 'GET'])
 def login_check():
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
+
     if request.method == 'POST':
 
         global users
@@ -126,7 +143,6 @@ def login_check():
         # 비밀번호에 해시함수 적용
         pw_hash = hashlib.sha512(pw).hexdigest()
 
-
         # 유저이름과 그에 해당하는 패스워드가 일치하는지 확인
         if users[user_id].can_login(pw_hash):
 
@@ -145,13 +161,22 @@ def login_check():
 
 
     elif request.method == 'GET':
-        return redirect(url_for('login'))
+        #return redirect(url_for('login'))
+        return render_template('login_form.html')
 
+
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    flash('자동 로그아웃 되었습니다. 다시 로그인 해주세요.', 'alert-danger')
+    return render_template('login_form.html')
 
 # ===================================================================================================================
 
 
 def reload_text_board(search_msg):
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
 
     #username = session['username']
     username = flask_login.current_user.user_id
@@ -199,7 +224,7 @@ def reload_text_board(search_msg):
     if search_msg is not None:
         print('검색')
 
-        search_msg_escaped = conn.escape_string(search_msg)
+        search_msg_escaped = db_conn.escape_string(search_msg)
         total_count = db_helper.total_count_text_search(search_msg_escaped)
 
 
@@ -292,6 +317,8 @@ def reload_text_board(search_msg):
 
 
 def reload_article_board(search_msg):
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
 
     #username = session['username']
     username = flask_login.current_user.user_id
@@ -340,7 +367,7 @@ def reload_article_board(search_msg):
     # 기사 제목을 검색한 경우
     if search_msg is not None:
         print('검색')
-        search_msg_escaped = conn.escape_string(search_msg)
+        search_msg_escaped = db_conn.escape_string(search_msg)
         total_count = db_helper.total_count_article_search(search_msg_escaped)
 
         board_search = db_helper.call_search_article(page, per_page, search_msg, asc1_desc0, col_name)
@@ -429,6 +456,9 @@ def reload_article_board(search_msg):
 @app.route('/text_board', methods = ['POST', 'GET'])
 @flask_login.login_required
 def text_board():
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
+
     print(request.method + '\t' + request.url)
     search_msg = request.args.get('search_msg')
 
@@ -438,6 +468,7 @@ def text_board():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
     '''
+
     #username = session['username']
     username = flask_login.current_user.user_id
 
@@ -480,7 +511,7 @@ def text_board():
 
         # POST method 인 경우 값을 받아오는 방식
         converted_text = request.form['CONVERTED']
-        converted_text_escaped = conn.escape_string(converted_text)
+        converted_text_escaped = db_conn.escape_string(converted_text)
 
         db_helper.update_sent_converted(converted_text_escaped, id)
         db_helper.update_sent_modified_date(id)
@@ -522,6 +553,8 @@ def article_board():
 @app.route('/text_board/edit', methods=['GET'])
 @flask_login.login_required
 def text_edit():
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
 
     '''
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
@@ -560,6 +593,9 @@ def text_edit():
 @app.route('/<board_type>/delete', methods=['POST'])
 @flask_login.login_required
 def delete(board_type):
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
+
     print(request.url)
     print(request.method)
 
@@ -592,6 +628,9 @@ def delete(board_type):
 @app.route('/text_board/create', methods = ['GET', 'POST'])
 @flask_login.login_required
 def text_create():
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
+
     print(request.method)
 
     '''

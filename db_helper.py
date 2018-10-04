@@ -96,6 +96,7 @@ class DB_Helper:
 
         self.print_sql(sql)
 
+        '''
         try:
             c.execute(sql)
             self.conn.commit()
@@ -103,6 +104,8 @@ class DB_Helper:
             self.reconnect()
             c.execute(sql)
             self.conn.commit()
+        '''
+        c.execute(sql)
 
 
         print("Number of rows inserted: %d" % c.rowcount)
@@ -115,11 +118,14 @@ class DB_Helper:
 
         sql = "SELECT * FROM %s" % table_name
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
         rows = c.fetchall()
         return rows
@@ -135,14 +141,14 @@ class DB_Helper:
 
         sql = "SELECT * FROM SentenceTable WHERE ArticleTable_article_id= %s" % id
 
-
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
-
-
+        '''
+        c.execute(sql)
 
         rows = c.fetchall()
         return rows
@@ -155,11 +161,14 @@ class DB_Helper:
         elif table_name == 'SentenceTable':
             sql = "SELECT %s as data FROM %s WHERE sent_id = %s" % (column_name, table_name, id)
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         row = c.fetchone()['data']
@@ -172,11 +181,14 @@ class DB_Helper:
 
         sql = "SELECT sent_id as id FROM SentenceTable ORDER BY sent_id DESC LIMIT 1"
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         row = c.fetchone()['id']
@@ -190,11 +202,14 @@ class DB_Helper:
         sql = "SELECT * FROM %s WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR " \
                                         "(sent_converted LIKE '%%%s%%' AND sent_confirm = 1)" % (table_name, text, text)
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         rows = c.fetchall()
@@ -208,12 +223,14 @@ class DB_Helper:
 
         sql = "SELECT %s FROM %s" % (column_name, table_name)
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
-
+        '''
+        c.execute(sql)
 
         rows = c.fetchall()
         return rows
@@ -224,11 +241,14 @@ class DB_Helper:
 
         sql = "SELECT %s, %s FROM %s WHERE article_sid1 = %s and article_sid2 = %s" % (column1, column2, table_name, sid1, sid2)
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         rows = c.fetchall()
@@ -249,6 +269,7 @@ class DB_Helper:
 
         self.print_sql(sql)
 
+        '''
         try:
             c.execute(sql)
             self.conn.commit()
@@ -256,6 +277,8 @@ class DB_Helper:
             self.reconnect()
             c.execute(sql)
             self.conn.commit()
+        '''
+        c.execute(sql)
 
         print("Number of rows updated: %d" % c.rowcount)
         return
@@ -269,7 +292,7 @@ class DB_Helper:
 
         self.print_sql(sql)
 
-
+        '''
         try:
             c.execute(sql)
             self.conn.commit()
@@ -277,6 +300,8 @@ class DB_Helper:
             self.reconnect()
             c.execute(sql)
             self.conn.commit()
+        '''
+        c.execute(sql)
 
 
 
@@ -292,6 +317,7 @@ class DB_Helper:
 
         self.print_sql(sql)
 
+        '''
         try:
             c.execute(sql)
             self.conn.commit()
@@ -299,6 +325,8 @@ class DB_Helper:
             self.reconnect()
             c.execute(sql)
             self.conn.commit()
+        '''
+        c.execute(sql)
 
 
 
@@ -314,6 +342,7 @@ class DB_Helper:
 
         self.print_sql(sql)
 
+        '''
         try:
             c.execute(sql)
             self.conn.commit()
@@ -321,6 +350,8 @@ class DB_Helper:
             self.reconnect()
             c.execute(sql)
             self.conn.commit()
+        '''
+        c.execute(sql)
 
 
 
@@ -336,6 +367,7 @@ class DB_Helper:
 
         self.print_sql(sql)
 
+        '''
         try:
             c.execute(sql)
             self.conn.commit()
@@ -343,6 +375,8 @@ class DB_Helper:
             self.reconnect()
             c.execute(sql)
             self.conn.commit()
+        '''
+        c.execute(sql)
 
 
 
@@ -361,6 +395,7 @@ class DB_Helper:
         elif table_name == 'SentenceTable':
             sql = "DELETE FROM SentenceTable WHERE sent_id = %s" % id
 
+        '''
         try:
             c.execute(sql)
             self.conn.commit()
@@ -368,6 +403,8 @@ class DB_Helper:
             self.reconnect()
             c.execute(sql)
             self.conn.commit()
+        '''
+        c.execute(sql)
 
 
 
@@ -398,11 +435,14 @@ class DB_Helper:
             sql = "SELECT * FROM ArticleTable"
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         rows = c.fetchall()
@@ -435,12 +475,14 @@ class DB_Helper:
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
 
-
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         rows = c.fetchall()
@@ -472,12 +514,14 @@ class DB_Helper:
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
 
-
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         rows = c.fetchall()
@@ -505,11 +549,14 @@ class DB_Helper:
             sql += " WHERE article_title LIKE \'%%%s%%\'" % search_msg
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         rows = c.fetchall()
@@ -538,11 +585,14 @@ class DB_Helper:
             sql += " LIMIT %s, %s" % (limit_start, per_page)
 
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         rows = c.fetchall()
@@ -571,11 +621,14 @@ class DB_Helper:
             sql += " WHERE article_sid1 = %s and article_sid2 = %s" % (sid1, sid2)
             sql += " LIMIT %s, %s" % (limit_start, per_page)
 
+        '''
         try:
             c.execute(sql)
         except:
             self.reconnect()
             c.execute(sql)
+        '''
+        c.execute(sql)
 
 
         rows = c.fetchall()
