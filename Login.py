@@ -1,9 +1,11 @@
-from flask import Flask, request, session, render_template, redirect, url_for, flash
+from flask import Flask, request, session, render_template, redirect, url_for, flash, g
 from flask_bootstrap import Bootstrap
+import flask_login
+import hashlib
 import pymysql
 import os
 from db_helper import DB_Helper
-from flask_paginate import Pagination, get_page_parameter, get_page_args
+from flask_paginate import Pagination
 from NumberToWord import *
 
 
@@ -13,6 +15,46 @@ app.secret_key = os.urandom(24)
 
 
 
+
+# 사용자 클래스
+class user_class:
+    def __init__(self, user_id, pw_hash=None, authenticated=False):
+        self.user_id = user_id
+        self.pw_hash = pw_hash
+        self.authenticated = authenticated
+
+    def can_login(self, pw_hash):
+        return self.pw_hash == pw_hash
+
+    def is_active(self):
+        return True
+
+    def get_id(self):
+        return self.user_id
+
+    def is_authenticated(self):
+        return self.authenticated
+
+    def is_anonymous(self):
+        return False
+
+    @classmethod
+    def get(cls, user_id):
+        user_id = user_id
+        pw_hash = users[user_id].pw_hash
+        return cls(user_id, pw_hash)
+
+
+'''
+# 글로벌 사용자 정보
+USERS = {
+    "chris" : User("chris", pw_hash='1111'),
+    "sam" : User("sam", pw_hash='2222'),
+    "john" : User("john", pw_hash='3333')
+}
+'''
+
+
 conn = pymysql.connect(host='163.239.169.54',
                        port=3306,
                        user='s20131533',
@@ -20,11 +62,11 @@ conn = pymysql.connect(host='163.239.169.54',
                        db='number_to_word',
                        charset='utf8',
                        cursorclass=pymysql.cursors.DictCursor)
-
-
 db_helper = DB_Helper(conn)
 
-cur = conn.cursor()
+login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
+
 
 sid1_count = {'정치' : 0, '경제' : 0, '사회' : 0, '생활/문화' : 0, '세계' : 0, 'IT/과학' : 0}
 
@@ -36,12 +78,84 @@ sid2_count = {'청와대' : 0, '국회/정당' : 0, '북한' : 0, '행정' : 0, 
               '모바일' : 0, '인터넷/SNS' : 0, '통신/뉴미디어' : 0, 'IT 일반' : 0, '보안/해킹' : 0, '컴퓨터' : 0, '게임/리뷰' : 0, '과학 일반' : 0}
 
 
+@login_manager.user_loader
+def user_loader(user_id):
+    # return USERS[user_id]
+     return user_class.get(user_id)
 
+
+@app.route('/login')
+def login():
+    return render_template('login_form.html')
+
+
+@app.route('/logout')
+@flask_login.login_required
+def logout():
+    # session['logged_in'] = False
+    # session.pop('username', None)
+    # session.pop('password', None)
+
+    user = flask_login.current_user
+    user.authenticated = False
+    flask_login.logout_user()
+
+    flash('로그아웃 되었습니다.', 'alert-success')
+    return redirect(url_for('login'))
+
+
+@app.route('/login_check', methods=['POST', 'GET'])
+def login_check():
+    if request.method == 'POST':
+
+        global users
+        users = {}
+
+        # DB에 저장된 user 정보 받아와서 users 딕셔너리에 저장
+        rows = db_helper.select_every_rows_from_table('user_info')
+        for row in rows:
+            users[row['username']] = user_class(row['username'], pw_hash=row['password'])
+
+
+        user_id = request.form['username']
+        pw = request.form['password']
+
+        # 비밀번호 인코딩
+        pw = pw.encode('utf-8')
+
+        # 비밀번호에 해시함수 적용
+        pw_hash = hashlib.sha512(pw).hexdigest()
+
+
+        # 유저이름과 그에 해당하는 패스워드가 일치하는지 확인
+        if users[user_id].can_login(pw_hash):
+
+            # session['logged_in'] = True
+            # session['username'] = request.form['username']
+            # session['password'] = request.form['password']
+
+            users[user_id].authenticated = True
+            flask_login.login_user(users[user_id])
+
+            return redirect(url_for('article_board', page=1, col_name='article_id', asc1_desc0='1'))
+        else:
+            error_msg = '로그인 정보가 맞지 않습니다.'
+            flash(error_msg, 'alert-danger')
+            return render_template('login_form.html')
+
+
+    elif request.method == 'GET':
+        return redirect(url_for('login'))
+
+
+# ===================================================================================================================
 
 
 def reload_text_board(search_msg):
 
-    username = session['username']
+    #username = session['username']
+    username = flask_login.current_user.user_id
+
     article_id = request.args.get('article_id')
 
     # 딕셔너리 초기화
@@ -84,12 +198,9 @@ def reload_text_board(search_msg):
     # 검색한 게시글 반환
     if search_msg is not None:
         print('검색')
-        search_msg_escaped = conn.escape_string(search_msg)
 
-        sql = "SELECT count(*) as total_count FROM SentenceTable " \
-              "WHERE (sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_original LIKE '%%%s%%' AND sent_confirm = 1)" % (search_msg_escaped, search_msg_escaped)
-        cur.execute(sql)
-        total_count = cur.fetchone()['total_count']
+        search_msg_escaped = conn.escape_string(search_msg)
+        total_count = db_helper.total_count_text_search(search_msg_escaped)
 
 
         board_search = db_helper.call_search_sentence(page, per_page, search_msg, asc1_desc0, col_name)
@@ -121,13 +232,11 @@ def reload_text_board(search_msg):
     # 특정 기사를 클릭한 경우
     elif article_id is not None:
         print('특정 기사 클릭')
-        sql = "SELECT COUNT(*) as total_count FROM SentenceTable WHERE ArticleTable_article_id = %s" % article_id
-        cur.execute(sql)
-        total_count = cur.fetchone()['total_count']
 
+        total_count = db_helper.total_count_clicked_article(article_id)
         article_title = db_helper.select_data_from_table_by_id('article_title', 'ArticleTable', article_id)
-
         board_article = db_helper.call_sentence_by_article_id(page, per_page, article_id, asc1_desc0, col_name)
+
 
         pagination = Pagination(page=page,
                                 per_page=per_page,
@@ -155,10 +264,7 @@ def reload_text_board(search_msg):
     # 게시글 전체 반환
     else:
         print('전체')
-        sql = "SELECT count(*) as total_count FROM SentenceTable"
-        cur.execute(sql)
-        total_count = cur.fetchone()['total_count']
-
+        total_count = db_helper.total_count_every_sentences()
         board_total = db_helper.call_every_sentence(page, per_page, asc1_desc0, col_name)
 
 
@@ -185,13 +291,15 @@ def reload_text_board(search_msg):
 
 
 
-
 def reload_article_board(search_msg):
 
-    username = session['username']
+    #username = session['username']
+    username = flask_login.current_user.user_id
+
 
     sid1 = request.args.get('sid1')
     sid2 = request.args.get('sid2')
+
 
 
     # 딕셔너리 초기화
@@ -233,10 +341,7 @@ def reload_article_board(search_msg):
     if search_msg is not None:
         print('검색')
         search_msg_escaped = conn.escape_string(search_msg)
-
-        sql = "SELECT count(*) as total_count FROM ArticleTable WHERE article_title LIKE '%%%s%%'" % search_msg_escaped
-        cur.execute(sql)
-        total_count = cur.fetchone()['total_count']
+        total_count = db_helper.total_count_article_search(search_msg_escaped)
 
         board_search = db_helper.call_search_article(page, per_page, search_msg, asc1_desc0, col_name)
 
@@ -264,10 +369,7 @@ def reload_article_board(search_msg):
     # 카테고리 목록을 클릭한 경우
     elif sid1 is not None and sid2 is not None:
         print('카테고리')
-        sql = "SELECT count(*) as total_count FROM ArticleTable WHERE article_sid1 = %s and article_sid2 = %s" % (sid1, sid2)
-        cur.execute(sql)
-        total_count = cur.fetchone()['total_count']
-
+        total_count = db_helper.total_count_article_category(sid1, sid2)
         board_total = db_helper.call_article_by_category(page, per_page, asc1_desc0, col_name, sid1, sid2)
 
         pagination = Pagination(page=page,
@@ -294,9 +396,7 @@ def reload_article_board(search_msg):
 
     else:
         print('전체')
-        sql = "SELECT count(*) as total_count FROM ArticleTable"
-        cur.execute(sql)
-        total_count = cur.fetchone()['total_count']
+        total_count = db_helper.total_count_every_articles()
 
         # '추가' row 때문에 하나 뺴줘야한다.
         total_count = total_count - 1
@@ -327,16 +427,20 @@ def reload_article_board(search_msg):
 
 
 @app.route('/text_board', methods = ['POST', 'GET'])
+@flask_login.login_required
 def text_board():
     print(request.method + '\t' + request.url)
     search_msg = request.args.get('search_msg')
 
+    '''
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
+    '''
+    #username = session['username']
+    username = flask_login.current_user.user_id
 
-    username = session['username']
 
 
 
@@ -389,14 +493,18 @@ def text_board():
 
 
 @app.route('/article_board', methods = ['GET'])
+@flask_login.login_required
 def article_board():
     print(request.method + '\t' + request.url)
     search_msg = request.args.get('search_msg')
 
+
+    '''
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
+    '''
 
 
     if request.method == 'GET':
@@ -412,16 +520,18 @@ def article_board():
 
 
 @app.route('/text_board/edit', methods=['GET'])
+@flask_login.login_required
 def text_edit():
 
-
+    '''
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
+    '''
 
-    username = session['username']
-
+    #username = session['username']
+    username = flask_login.current_user.user_id
 
     page = request.args.get('page')
     sent_id = request.args.get('sent_id')
@@ -448,15 +558,17 @@ def text_edit():
 
 #@app.route('/<board_type>/delete', methods=['GET'])
 @app.route('/<board_type>/delete', methods=['POST'])
+@flask_login.login_required
 def delete(board_type):
     print(request.url)
     print(request.method)
 
+    '''
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
-
+    '''
 
     if board_type == 'article_board':
         # POST method 받아오는 방법
@@ -478,15 +590,19 @@ def delete(board_type):
 
 
 @app.route('/text_board/create', methods = ['GET', 'POST'])
+@flask_login.login_required
 def text_create():
     print(request.method)
 
+    '''
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
+    '''
 
-    username = session['username']
+    #username = session['username']
+    username = flask_login.current_user.user_id
 
     page = request.args.get('page')
 
@@ -527,13 +643,15 @@ def text_create():
 
 
 @app.route('/<board_type>/search', methods=['GET'])
+@flask_login.login_required
 def search(board_type):
 
+    '''
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
-
+    '''
 
     article_id = request.args.get('article_id')
     search_msg = request.args.get('search_msg')
@@ -562,12 +680,15 @@ def search(board_type):
 
 
 @app.route('/<board_type>/order', methods=['GET'])
+@flask_login.login_required
 def order(board_type):
 
+    '''
     # 로그인된 상태가 아니라면 로그인 페이지로 이동
     if 'username' not in session.keys():
         flash('로그인 해주세요.', 'alert-danger')
         return redirect(url_for('login'))
+    '''
 
     page = request.args.get('page')
     col_name = request.args.get('col_name')
@@ -607,65 +728,9 @@ def order(board_type):
 
 
 
-@app.route('/main')
-def main():
-    if 'username' in session.keys() and 'password' in session.keys():
-        return session['username'] + '님 로그인을 환영합니다.'
-    else:
-        return '로그인 하십시오.'
 
 
-@app.route('/logging')
-def logging_test():
-    test = 1
-    app.logger.debug('디버깅 필요')
-    app.logger.warning(str(test) + " 라인")
-    app.logger.error('에러발생')
-    return "로깅 끝"
-
-
-@app.route('/login')
-def login():
-    return render_template('login_form.html')
-
-
-@app.route('/logout')
-def logout():
-    session['logged_in'] = False
-    session.pop('username', None)
-    session.pop('password', None)
-    flash('로그아웃 되었습니다.', 'alert-success')
-    return redirect(url_for('login'))
-
-
-
-@app.route('/login_check', methods = ['POST','GET'])
-def login_check():
-    if request.method == 'POST':
-
-        users = {}
-
-        rows = db_helper.select_every_rows_from_table('user_info')
-        for row in rows:
-            users[row['username']]= row['password']
-
-
-        # 유저이름과 그에 해당하는 패스워드가 일치하는지 확인
-        if request.form['username'] in users.keys() and request.form['password'] == users[request.form['username']]:
-            session['logged_in'] = True
-            session['username'] = request.form['username']
-            session['password'] = request.form['password']
-            #return redirect(url_for('text_board', page = 1, col_name='sent_id', asc1_desc0='1'))
-            return redirect(url_for('article_board', page = 1, col_name='article_id', asc1_desc0='1'))
-        else:
-            error_msg = '로그인 정보가 맞지 않습니다.'
-            flash(error_msg, 'alert-danger')
-            return render_template('login_form.html')
-
-    elif request.method == 'GET':
-        return '잘못된 접근'
-
-
+'''
 @app.route('/change', methods = ['POST', 'GET'])
 def change():
     if request.method == 'POST':
@@ -678,7 +743,7 @@ def change():
         return render_template('main_page.html', username=session['username'], input=input_str, output=output_str)
     else:
         return '잘못된 접근'
-
+'''
 
 
 
