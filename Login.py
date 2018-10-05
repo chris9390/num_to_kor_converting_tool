@@ -7,11 +7,13 @@ import os
 from db_helper import DB_Helper
 from flask_paginate import Pagination
 from NumberToWord import *
+from datetime import timedelta
 
 
 app = Flask(__name__)
 Bootstrap(app)
 app.secret_key = os.urandom(24)
+#app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=2)
 
 
 
@@ -97,6 +99,7 @@ def get_db():
     return db
 
 
+
 @app.teardown_appcontext
 def close_connection(exception):
     db = getattr(g, '_database', None)
@@ -104,9 +107,9 @@ def close_connection(exception):
         db.close()
 
 
+
 @login_manager.user_loader
 def user_loader(user_id):
-    # return USERS[user_id]
      return user_class.get(user_id)
 
 
@@ -164,7 +167,10 @@ def login_check():
             # session['password'] = request.form['password']
 
             users[user_id].authenticated = True
-            flask_login.login_user(users[user_id], remember=True)
+            flask_login.login_user(users[user_id])
+            session.permanent = True
+            app.permanent_session_lifetime = timedelta(hours=6)
+
 
             return redirect(url_for('article_board', page=1, col_name='article_id', asc1_desc0='1'))
         else:
