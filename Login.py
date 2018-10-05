@@ -81,6 +81,7 @@ sid2_count = {'청와대' : 0, '국회/정당' : 0, '북한' : 0, '행정' : 0, 
 
 def get_db():
     db = getattr(g, '_database', None)
+
     if db is None:
         db = pymysql.connect(host='163.239.169.54',
                              port=3306,
@@ -89,11 +90,18 @@ def get_db():
                              db='number_to_word',
                              charset='utf8',
                              cursorclass=pymysql.cursors.DictCursor)
-
+        g._database = db
     else:
         db.ping()
 
     return db
+
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
 
 @login_manager.user_loader
@@ -115,6 +123,11 @@ def logout():
 
     flash('로그아웃 되었습니다.', 'alert-success')
     #return redirect(url_for('login'))
+    return render_template('login_form.html')
+
+
+@app.route('/login', methods=['GET'])
+def login():
     return render_template('login_form.html')
 
 
@@ -151,7 +164,7 @@ def login_check():
             # session['password'] = request.form['password']
 
             users[user_id].authenticated = True
-            flask_login.login_user(users[user_id])
+            flask_login.login_user(users[user_id], remember=True)
 
             return redirect(url_for('article_board', page=1, col_name='article_id', asc1_desc0='1'))
         else:
