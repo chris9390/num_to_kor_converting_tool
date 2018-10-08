@@ -239,7 +239,7 @@ class DB_Helper:
     def select_column_with_cond(self, column1, column2, table_name, sid1, sid2):
         c = self.conn.cursor()
 
-        sql = "SELECT %s, %s FROM %s WHERE article_sid1 = %s and article_sid2 = %s" % (column1, column2, table_name, sid1, sid2)
+        sql = "SELECT %s, %s FROM %s WHERE article_sid1 = '%s' and article_sid2 = '%s'" % (column1, column2, table_name, sid1, sid2)
 
         '''
         try:
@@ -608,17 +608,17 @@ class DB_Helper:
 
         if asc1_desc0 == '1':
             sql = "SELECT * FROM ArticleTable"
-            sql += " WHERE article_sid1 = %s and article_sid2 = %s" % (sid1, sid2)
+            sql += " WHERE article_sid1 = '%s' and article_sid2 = '%s'" % (sid1, sid2)
             sql += " ORDER BY %s %s" % (col_name, 'ASC')
             sql += " LIMIT %s, %s" % (limit_start, per_page)
         elif asc1_desc0 == '0':
             sql = "SELECT * FROM ArticleTable"
-            sql += " WHERE article_sid1 = %s and article_sid2 = %s" % (sid1, sid2)
+            sql += " WHERE article_sid1 = '%s' and article_sid2 = '%s'" % (sid1, sid2)
             sql += " ORDER BY %s %s" % (col_name, 'DESC')
             sql += " LIMIT %s, %s" % (limit_start, per_page)
         elif asc1_desc0 == None:
             sql = "SELECT * FROM ArticleTable"
-            sql += " WHERE article_sid1 = %s and article_sid2 = %s" % (sid1, sid2)
+            sql += " WHERE article_sid1 = '%s' and article_sid2 = '%s'" % (sid1, sid2)
             sql += " LIMIT %s, %s" % (limit_start, per_page)
 
         '''

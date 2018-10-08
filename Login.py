@@ -46,26 +46,6 @@ class user_class:
         return cls(user_id, pw_hash)
 
 
-'''
-# 글로벌 사용자 정보
-USERS = {
-    "chris" : User("chris", pw_hash='1111'),
-    "sam" : User("sam", pw_hash='2222'),
-    "john" : User("john", pw_hash='3333')
-}
-'''
-
-
-'''
-conn = pymysql.connect(host='163.239.169.54',
-                       port=3306,
-                       user='s20131533',
-                       passwd='s20131533',
-                       db='number_to_word',
-                       charset='utf8',
-                       cursorclass=pymysql.cursors.DictCursor)
-db_helper = DB_Helper(conn)
-'''
 
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
@@ -171,8 +151,8 @@ def login_check():
             session.permanent = True
             app.permanent_session_lifetime = timedelta(hours=6)
 
-
             return redirect(url_for('article_board', page=1, col_name='article_id', asc1_desc0='1'))
+
         else:
             error_msg = '로그인 정보가 맞지 않습니다.'
             flash(error_msg, 'alert-danger')
@@ -190,6 +170,9 @@ def unauthorized():
     flash('자동 로그아웃 되었습니다. 다시 로그인 해주세요.', 'alert-danger')
     return render_template('login_form.html')
 
+
+# ===================================================================================================================
+# ===================================================================================================================
 # ===================================================================================================================
 
 
@@ -197,10 +180,18 @@ def reload_text_board(search_msg):
     db_conn = get_db()
     db_helper = DB_Helper(db_conn)
 
-    #username = session['username']
     username = flask_login.current_user.user_id
 
+
+    sid1 = None
+    sid2 = None
     article_id = request.args.get('article_id')
+    if (article_id is not None) and (article_id != 'None'):
+        sid1 = db_helper.select_data_from_table_by_id('article_sid1', 'ArticleTable', article_id)
+        sid2 = db_helper.select_data_from_table_by_id('article_sid2', 'ArticleTable', article_id)
+    #sid1 = request.args.get('sid1')
+    #sid2 = request.args.get('sid2')
+
 
     # 딕셔너리 초기화
     for i in sid1_count:
@@ -239,12 +230,17 @@ def reload_text_board(search_msg):
     col_name = request.args.get('col_name')
     # ===================================================
 
+
     # 검색한 게시글 반환
     if search_msg is not None:
         print('검색')
 
         search_msg_escaped = db_conn.escape_string(search_msg)
         total_count = db_helper.total_count_text_search(search_msg_escaped)
+
+        article_title = None
+        if (article_id is not None) and (article_id != 'None'):
+            article_title = db_helper.select_data_from_table_by_id('article_title', 'ArticleTable', article_id)
 
 
         board_search = db_helper.call_search_sentence(page, per_page, search_msg, asc1_desc0, col_name)
@@ -269,8 +265,11 @@ def reload_text_board(search_msg):
                                col_name=col_name,
                                sid1_count=sid1_count,
                                sid2_count=sid2_count,
+                               article_title=article_title,
                                article_id=article_id,
-                               article_board_page=article_board_page)
+                               article_board_page=article_board_page,
+                               sid1=sid1,
+                               sid2=sid2)
 
 
     # 특정 기사를 클릭한 경우
@@ -301,7 +300,9 @@ def reload_text_board(search_msg):
                                sid2_count=sid2_count,
                                article_title=article_title,
                                article_id=article_id,
-                               article_board_page=article_board_page)
+                               article_board_page=article_board_page,
+                               sid1=sid1,
+                               sid2=sid2)
 
 
 
@@ -339,9 +340,7 @@ def reload_article_board(search_msg):
     db_conn = get_db()
     db_helper = DB_Helper(db_conn)
 
-    #username = session['username']
     username = flask_login.current_user.user_id
-
 
     sid1 = request.args.get('sid1')
     sid2 = request.args.get('sid2')
@@ -413,7 +412,7 @@ def reload_article_board(search_msg):
 
 
     # 카테고리 목록을 클릭한 경우
-    elif sid1 is not None and sid2 is not None:
+    elif (sid1 is not None and sid2 is not None) and (sid1 != '' and sid2 != ''):
         print('카테고리')
         total_count = db_helper.total_count_article_category(sid1, sid2)
         board_total = db_helper.call_article_by_category(page, per_page, asc1_desc0, col_name, sid1, sid2)
@@ -434,7 +433,9 @@ def reload_article_board(search_msg):
                                asc1_desc0=asc1_desc0,
                                col_name=col_name,
                                sid1_count=sid1_count,
-                               sid2_count=sid2_count)
+                               sid2_count=sid2_count,
+                               sid1=sid1,
+                               sid2=sid2)
 
 
 
@@ -481,14 +482,7 @@ def text_board():
     print(request.method + '\t' + request.url)
     search_msg = request.args.get('search_msg')
 
-    '''
-    # 로그인된 상태가 아니라면 로그인 페이지로 이동
-    if 'username' not in session.keys():
-        flash('로그인 해주세요.', 'alert-danger')
-        return redirect(url_for('login'))
-    '''
 
-    #username = session['username']
     username = flask_login.current_user.user_id
 
 
@@ -547,14 +541,6 @@ def text_board():
 def article_board():
     print(request.method + '\t' + request.url)
     search_msg = request.args.get('search_msg')
-
-
-    '''
-    # 로그인된 상태가 아니라면 로그인 페이지로 이동
-    if 'username' not in session.keys():
-        flash('로그인 해주세요.', 'alert-danger')
-        return redirect(url_for('login'))
-    '''
 
 
     if request.method == 'GET':
@@ -704,27 +690,26 @@ def text_create():
 @flask_login.login_required
 def search(board_type):
 
-    '''
-    # 로그인된 상태가 아니라면 로그인 페이지로 이동
-    if 'username' not in session.keys():
-        flash('로그인 해주세요.', 'alert-danger')
-        return redirect(url_for('login'))
-    '''
-
     article_id = request.args.get('article_id')
     search_msg = request.args.get('search_msg')
     page = request.args.get('page')
+    sid1 = request.args.get('sid1')
+    sid2 = request.args.get('sid2')
 
 
-    # 빈 문자열 입력시 모든 Sentence 출력
+
+    # 빈 문자열 입력시 에러
     if search_msg.strip() == "":
+        flash('1글자 이상 써주십시오.','alert-danger')
+
         if board_type == 'article_board':
-            return redirect(url_for('article_board', page=page))
+            return redirect(url_for('article_board', sid1=sid1, sid2=sid2))
+
         elif board_type == 'text_board':
-            return redirect(url_for('text_board', page = page))
+            return redirect(url_for('text_board', article_id=article_id))
 
 
-    print('article id: ' + str(article_id))
+    print("article id: " + str(article_id))
     print("search msg: " + search_msg)
     print("page: " + str(page))
 
