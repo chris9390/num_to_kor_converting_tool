@@ -27,7 +27,7 @@
 
 {% block nav %}
 <ul class="navbar-nav ml-auto">
-    <li><a class="nav-link" href="#">{{username}}님 접속중...</a></li>
+    <li><a class="nav-link" href="#">{{user_id}}님 접속중...</a></li>
     <li><a class="nav-link" href="{{url_for('logout')}}"><i class="fa-blink"><i class="fas fa-sign-out-alt"></i></i> 로그아웃</a></li>
 </ul>
 {% endblock %}

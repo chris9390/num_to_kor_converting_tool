@@ -4,68 +4,62 @@
 
 {% block content %}
     <div class="container">
-        <div id="center">
+        <form method="post" action="/login_check">
 
-
-            <form method="post" action="/login_check">
-
-                <div class="form-group">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            <div class="flashes my-4">
-                                {% for category, message in messages %}
-                                <p class="{{category}} col-md-6 text-center" style="font-size:20px">{{message}}</p>
-                                {% endfor %}
-                            </div>
-
-                        {% endif %}
-                    {% endwith %}
-                </div>
-
-
-                <div class="form-group">
-                    <div class="page-header">
-                        <h2>로그인 정보를 입력해 주세요</h2>
-                    </div>
-                </div>
-
-
-                <div class="form-group form-row">
-                    <label class="col-form-label col-md-1" for="username_id">Username : </label>
-                    <div class="col-md-5">
-                        <input type="text" class="form-control" name="username" id="username_id" placeholder="사용자 이름을 써주세요.">
-                    </div>
-                </div>
-
-
-                <div class="form-group form-row">
-                    <label class="col-form-label col-md-1" for="password_id">Password : </label>
-                    <div class="col-md-5">
-                        <input type="password" class="form-control" name="password" id="password_id" placeholder="비밀번호를 써주세요.">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="offset-md-1 col-lg-2">
-                        <button type="submit" class="btn btn-primary">로그인</button>
-                    </div>
-                </div>
-
-                <!--
-                {% if error_msg %}
-                <div class="form-group">
-                    <div class="offset-md-1 col-md-5">
-                        <div class="alert alert-danger">
-                            {{error_msg}}
+            <div class="form-group">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flashes my-4">
+                            {% for category, message in messages %}
+                            <p class="{{category}} col-md-6 text-center" style="font-size:20px">{{message}}</p>
+                            {% endfor %}
                         </div>
-                    </div>
+
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+
+            <div class="form-group">
+                <div class="page-header">
+                    <h2>로그인 정보를 입력해 주세요</h2>
                 </div>
-                {% endif %}
-                -->
-            </form>
+            </div>
 
 
-        </div>
+            <div class="form-group form-row">
+                <label class="col-form-label col-md-1" for="id_id">아이디 : </label>
+                <div class="col-md-5">
+                    <input type="text" class="form-control" name="id" id="id_id" placeholder="아이디를 입력해주세요.">
+                </div>
+            </div>
+
+
+            <div class="form-group form-row">
+                <label class="col-form-label col-md-1" for="pw_id">비밀번호 : </label>
+                <div class="col-md-5">
+                    <input type="password" class="form-control" name="pw" id="pw_id" placeholder="비밀번호를 입력해주세요.">
+                </div>
+            </div>
+
+
+            <div class="form-group form-row">
+                <div class="offset-md-1"></div>
+                <div class="col-md-5">
+                    <input type="submit" class="btn btn-primary btn-block" value="로그인">
+                </div>
+            </div>
+
+
+            <div class="form-group form-row">
+                <div class="offset-md-1"></div>
+                <div class="col-md-5">
+                    <input type="button" class="btn btn-primary btn-block" onclick="location.href='/sign_up';" value="회원가입">
+                </div>
+            </div>
+
+
+        </form>
     </div>
 
 {% endblock %}

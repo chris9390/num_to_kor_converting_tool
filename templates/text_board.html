@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}TEXT BOARD{% endblock %}
+{% block title %}SENTENCE BOARD{% endblock %}
 {% block head %}
     {{super()}}
     <script language="JavaScript">
@@ -94,7 +94,7 @@
 </ul>
 
 <ul class="navbar-nav ml-auto">
-    <li class="nav-item"><a class="nav-link" href="#">{{username}}님 접속중...</a></li>
+    <li class="nav-item"><a class="nav-link" href="#">{{user_id}}님 접속중...</a></li>
     <li class="nav-item"><a class="nav-link" href="{{url_for('logout')}}"><i class="fa-blink"><i class="fas fa-sign-out-alt"></i></i> 로그아웃</a></li>
 </ul>
 {% endblock %}
@@ -123,10 +123,11 @@
         <div class="row my-4">
             <div class="col col-2 text-left">
                 {% if article_id is not defined or article_id == 'None' %}
-                    <input type="button" class="btn btn-primary" value="기사 목록으로" onclick="location.href='/article_board';">
+                    <input type="button" class="btn btn-primary btn-block" value="해당 카테고리 목록" onclick="location.href='/article_board';">
                 {% else %}
-                    <input type="button" class="btn btn-primary" value="기사 목록으로" onclick="location.href='/article_board?col_name=article_id&page={{article_board_page}}&asc1_desc0=1&sid1={{sid1}}&sid2={{sid2}}';">
+                    <input type="button" class="btn btn-primary btn-block" value="해당 카테고리 목록" onclick="location.href='/article_board?col_name=article_id&page=1&asc1_desc0=1&sid1={{sid1}}&sid2={{sid2}}';">
                 {% endif %}
+                <input type="button" class="btn btn-primary btn-block my-2" value="모든 기사 목록" onclick="location.href='/article_board?page=1&col_name=article_id&asc1_desc0=1';">
             </div>
 
             <div class="col">
@@ -189,7 +190,7 @@
         {% else %}
         <div class="row my-4">
             <div class="col text-left">
-                <input type="button" class="btn btn-primary" value="기사 목록으로" onclick="location.href='/article_board?col_name=article_id&page={{article_board_page}}&asc1_desc0=1&sid1={{sid1}}&sid2={{sid2}}';">
+                <input type="button" class="btn btn-primary" value="해당 카테고리 목록" onclick="location.href='/article_board?col_name=article_id&page=1&asc1_desc0=1&sid1={{sid1}}&sid2={{sid2}}';">
             </div>
 
             <div class="col text-right">
@@ -208,7 +209,7 @@
 
 
             <div class="col-10">
-                {{pagination.info}}
+                <!--{{pagination.info}}-->
                 {{pagination.links}}
                     <table class="table table-hover">
                         <thead>
@@ -358,8 +359,9 @@
 
 
         <div class="row">
-            <div class="col text-left">
-                <input type="button" class="btn btn-primary" value="기사 목록으로" onclick="location.href='/article_board?col_name=article_id&page={{article_board_page}}&asc1_desc0=1';">
+            <div class="col col-2 text-left">
+                <input type="button" class="btn btn-primary btn-block" value="해당 카테고리 목록" onclick="location.href='/article_board?col_name=article_id&page=1&asc1_desc0=1';">
+                <input type="button" class="btn btn-primary btn-block my-2" value="모든 기사 목록" onclick="location.href='/article_board?page=1&col_name=article_id&asc1_desc0=1';">
             </div>
 
             <div class="col text-right">

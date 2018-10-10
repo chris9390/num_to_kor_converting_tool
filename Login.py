@@ -105,7 +105,6 @@ def logout():
     flask_login.logout_user()
 
     flash('로그아웃 되었습니다.', 'alert-success')
-    #return redirect(url_for('login'))
     return render_template('login_form.html')
 
 
@@ -125,22 +124,22 @@ def login_check():
         users = {}
 
         # DB에 저장된 user 정보 받아와서 users 딕셔너리에 저장
-        rows = db_helper.select_every_rows_from_table('user_info')
+        rows = db_helper.select_every_rows_from_table('UserTable')
         for row in rows:
-            users[row['username']] = user_class(row['username'], pw_hash=row['password'])
+            users[row['user_id']] = user_class(row['user_id'], pw_hash=row['user_pw'])
 
 
-        user_id = request.form['username']
-        pw = request.form['password']
+        user_id = request.form['id']
+        user_pw = request.form['pw']
 
         # 비밀번호 인코딩
-        pw = pw.encode('utf-8')
+        user_pw = user_pw.encode('utf-8')
 
         # 비밀번호에 해시함수 적용
-        pw_hash = hashlib.sha512(pw).hexdigest()
+        user_pw_hash = hashlib.sha512(user_pw).hexdigest()
 
         # 유저이름과 그에 해당하는 패스워드가 일치하는지 확인
-        if users[user_id].can_login(pw_hash):
+        if users[user_id].can_login(user_pw_hash):
 
             # session['logged_in'] = True
             # session['username'] = request.form['username']
@@ -160,8 +159,64 @@ def login_check():
 
 
     elif request.method == 'GET':
-        #return redirect(url_for('login'))
         return render_template('login_form.html')
+
+
+
+@app.route('/sign_up', methods=['GET', 'POST'])
+def sign_up():
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
+
+
+    if request.method == 'GET':
+        return render_template('sign_up.html')
+
+    elif request.method == 'POST':
+
+        user_id = request.form['id']
+        user_pw = request.form['pw']
+
+        # 비밀번호 인코딩
+        user_pw = user_pw.encode('utf-8')
+
+        # 비밀번호에 해시함수 적용
+        user_pw_hash = hashlib.sha512(user_pw).hexdigest()
+
+
+        user_name = request.form['username']
+        user_birth = request.form['birth']
+        user_gender = request.form['gender']
+        user_email = request.form['email']
+
+        user_info_dict = {}
+        user_info_dict['user_id'] = user_id
+        user_info_dict['user_pw'] = user_pw_hash
+        user_info_dict['user_name'] = user_name
+        user_info_dict['user_birth'] = user_birth
+        user_info_dict['user_gender'] = user_gender
+        user_info_dict['user_email'] = user_email
+
+        db_helper.insert_user_info(user_info_dict)
+
+        flash('회원가입 되었습니다.', 'alert-success')
+        return render_template('login_form.html')
+
+
+@app.route('/overlap_check', methods=['POST'])
+def overlap_check():
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
+
+    user_id = request.form['id']
+
+
+    user_list = db_helper.select_one_column('user_id', 'UserTable')
+    for i in user_list:
+        if i['user_id'] == user_id:
+            return 'fail'
+
+    return 'success'
 
 
 
@@ -180,7 +235,7 @@ def reload_text_board(search_msg):
     db_conn = get_db()
     db_helper = DB_Helper(db_conn)
 
-    username = flask_login.current_user.user_id
+    user_id = flask_login.current_user.user_id
 
 
     sid1 = None
@@ -223,7 +278,6 @@ def reload_text_board(search_msg):
 
     # 공통 코드 ==========================================
     page = request.args.get('page', type=int, default=1)
-    article_board_page = request.args.get('article_board_page')
     per_page = 10
 
     asc1_desc0 = request.args.get('asc1_desc0')
@@ -257,7 +311,7 @@ def reload_text_board(search_msg):
 
         return render_template('text_board.html',
                                board_total=board_search,
-                               username=username,
+                               user_id=user_id,
                                pagination=pagination,
                                page=page,
                                search_msg=search_msg,
@@ -267,7 +321,6 @@ def reload_text_board(search_msg):
                                sid2_count=sid2_count,
                                article_title=article_title,
                                article_id=article_id,
-                               article_board_page=article_board_page,
                                sid1=sid1,
                                sid2=sid2)
 
@@ -291,7 +344,7 @@ def reload_text_board(search_msg):
 
         return render_template('text_board.html',
                                board_total=board_article,
-                               username=username,
+                               user_id=user_id,
                                pagination=pagination,
                                page=page,
                                asc1_desc0=asc1_desc0,
@@ -300,7 +353,6 @@ def reload_text_board(search_msg):
                                sid2_count=sid2_count,
                                article_title=article_title,
                                article_id=article_id,
-                               article_board_page=article_board_page,
                                sid1=sid1,
                                sid2=sid2)
 
@@ -324,23 +376,21 @@ def reload_text_board(search_msg):
 
         return render_template('text_board.html',
                                board_total=board_total,
-                               username=username,
+                               user_id=user_id,
                                pagination=pagination,
                                page=page,
                                asc1_desc0=asc1_desc0,
                                col_name=col_name,
                                sid1_count=sid1_count,
                                sid2_count=sid2_count,
-                               article_id=article_id,
-                               article_board_page=article_board_page)
-
+                               article_id=article_id)
 
 
 def reload_article_board(search_msg):
     db_conn = get_db()
     db_helper = DB_Helper(db_conn)
 
-    username = flask_login.current_user.user_id
+    user_id = flask_login.current_user.user_id
 
     sid1 = request.args.get('sid1')
     sid2 = request.args.get('sid2')
@@ -400,7 +450,7 @@ def reload_article_board(search_msg):
 
         return render_template('article_board.html',
                                board_total=board_search,
-                               username=username,
+                               user_id=user_id,
                                pagination=pagination,
                                page=page,
                                search_msg=search_msg,
@@ -427,7 +477,7 @@ def reload_article_board(search_msg):
 
         return render_template('article_board.html',
                                board_total=board_total,
-                               username=username,
+                               user_id=user_id,
                                pagination=pagination,
                                page=page,
                                asc1_desc0=asc1_desc0,
@@ -460,7 +510,7 @@ def reload_article_board(search_msg):
 
         return render_template('article_board.html',
                                board_total=board_total,
-                               username=username,
+                               user_id=user_id,
                                pagination=pagination,
                                page=page,
                                asc1_desc0=asc1_desc0,
@@ -482,8 +532,7 @@ def text_board():
     print(request.method + '\t' + request.url)
     search_msg = request.args.get('search_msg')
 
-
-    username = flask_login.current_user.user_id
+    user_id = flask_login.current_user.user_id
 
 
 
@@ -506,7 +555,7 @@ def text_board():
 
             page = request.args.get('page')
 
-            return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page, username=username)
+            return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page, user_id=user_id)
 
 
         id = session['sent_id']
@@ -561,15 +610,7 @@ def text_edit():
     db_conn = get_db()
     db_helper = DB_Helper(db_conn)
 
-    '''
-    # 로그인된 상태가 아니라면 로그인 페이지로 이동
-    if 'username' not in session.keys():
-        flash('로그인 해주세요.', 'alert-danger')
-        return redirect(url_for('login'))
-    '''
-
-    #username = session['username']
-    username = flask_login.current_user.user_id
+    user_id = flask_login.current_user.user_id
 
     page = request.args.get('page')
     sent_id = request.args.get('sent_id')
@@ -589,9 +630,9 @@ def text_edit():
 
 
     if search_msg is not None:
-        return render_template('text_edit.html', original_text=original_text, converted_text=converted_text, page=page, search_msg=search_msg, article_id=article_id, username=username)
+        return render_template('text_edit.html', original_text=original_text, converted_text=converted_text, page=page, search_msg=search_msg, article_id=article_id, user_id=user_id)
     else:
-        return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page, article_id=article_id, username=username)
+        return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page, article_id=article_id, user_id=user_id)
 
 
 #@app.route('/<board_type>/delete', methods=['GET'])
@@ -604,12 +645,6 @@ def delete(board_type):
     print(request.url)
     print(request.method)
 
-    '''
-    # 로그인된 상태가 아니라면 로그인 페이지로 이동
-    if 'username' not in session.keys():
-        flash('로그인 해주세요.', 'alert-danger')
-        return redirect(url_for('login'))
-    '''
 
     if board_type == 'article_board':
         # POST method 받아오는 방법
@@ -638,28 +673,20 @@ def text_create():
 
     print(request.method)
 
-    '''
-    # 로그인된 상태가 아니라면 로그인 페이지로 이동
-    if 'username' not in session.keys():
-        flash('로그인 해주세요.', 'alert-danger')
-        return redirect(url_for('login'))
-    '''
-
-    #username = session['username']
-    username = flask_login.current_user.user_id
+    user_id = flask_login.current_user.user_id
 
     page = request.args.get('page')
 
 
     if request.method == 'GET':
-        return render_template('text_create.html', page = page, username=username)
+        return render_template('text_create.html', page = page, user_id=user_id)
 
 
 
     elif request.method == 'POST':
         if request.form['text_create'] == '':
             flash('텍스트를 입력해주세요.', 'alert-danger')
-            return render_template('text_create.html', page = page, username=username)
+            return render_template('text_create.html', page = page, user_id=user_id)
 
 
         added_dict = {}
@@ -683,7 +710,7 @@ def text_create():
         db_helper.insert_new_text(added_dict)
 
 
-        return redirect(url_for('text_board', page = page, username=username))
+        return redirect(url_for('text_board', page = page, user_id=user_id))
 
 
 @app.route('/<board_type>/search', methods=['GET'])
@@ -697,16 +724,15 @@ def search(board_type):
     sid2 = request.args.get('sid2')
 
 
-
     # 빈 문자열 입력시 에러
     if search_msg.strip() == "":
         flash('1글자 이상 써주십시오.','alert-danger')
 
         if board_type == 'article_board':
-            return redirect(url_for('article_board', sid1=sid1, sid2=sid2))
+            return redirect(url_for('article_board', sid1=sid1, sid2=sid2, page=1, col_name='article_id', asc1_desc0=1))
 
         elif board_type == 'text_board':
-            return redirect(url_for('text_board', article_id=article_id))
+            return redirect(url_for('text_board', article_id=article_id, page=1, col_name='article_id', asc1_desc0=1))
 
 
     print("article id: " + str(article_id))
@@ -726,27 +752,28 @@ def search(board_type):
 @flask_login.login_required
 def order(board_type):
 
-    '''
-    # 로그인된 상태가 아니라면 로그인 페이지로 이동
-    if 'username' not in session.keys():
-        flash('로그인 해주세요.', 'alert-danger')
-        return redirect(url_for('login'))
-    '''
-
     page = request.args.get('page')
     col_name = request.args.get('col_name')
     asc1_desc0 = request.args.get('asc1_desc0')
     search_msg = request.args.get('search_msg')
     article_id = request.args.get('article_id')
-
+    sid1 = request.args.get('sid1')
+    sid2 = request.args.get('sid2')
 
     if board_type == 'article_board':
         # 검색한 경우 ordering
         if search_msg is not None:
-            return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg))
+            if sid1 != 'undefined':
+                return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg, sid1=sid1, sid2=sid2))
+            else:
+                return redirect(
+                    url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg))
         # 검색하지 않았을 경우 ordering
         else:
-            return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page))
+            if sid1 != 'undefined':
+                return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, sid1=sid1, sid2=sid2))
+            else:
+                return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page))
 
     elif board_type == 'text_board':
         # 검색한 경우 ordering

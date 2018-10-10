@@ -106,7 +106,7 @@ class DB_Helper:
             self.conn.commit()
         '''
         c.execute(sql)
-
+        self.conn.commit()
 
         print("Number of rows inserted: %d" % c.rowcount)
         return
@@ -279,6 +279,7 @@ class DB_Helper:
             self.conn.commit()
         '''
         c.execute(sql)
+        self.conn.commit()
 
         print("Number of rows updated: %d" % c.rowcount)
         return
@@ -302,7 +303,7 @@ class DB_Helper:
             self.conn.commit()
         '''
         c.execute(sql)
-
+        self.conn.commit()
 
 
         print("Number of rows updated: %d" % c.rowcount)
@@ -327,7 +328,7 @@ class DB_Helper:
             self.conn.commit()
         '''
         c.execute(sql)
-
+        self.conn.commit()
 
 
         print("Number of rows updated: %d" % c.rowcount)
@@ -352,7 +353,7 @@ class DB_Helper:
             self.conn.commit()
         '''
         c.execute(sql)
-
+        self.conn.commit()
 
 
         print("Number of rows updated: %d" % c.rowcount)
@@ -377,7 +378,7 @@ class DB_Helper:
             self.conn.commit()
         '''
         c.execute(sql)
-
+        self.conn.commit()
 
 
         print("Number of rows updated: %d" % c.rowcount)
@@ -405,7 +406,7 @@ class DB_Helper:
             self.conn.commit()
         '''
         c.execute(sql)
-
+        self.conn.commit()
 
 
         print("Number of rows deleted: %d" % c.rowcount)
