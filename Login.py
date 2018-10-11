@@ -635,7 +635,6 @@ def text_edit():
         return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page, article_id=article_id, user_id=user_id)
 
 
-#@app.route('/<board_type>/delete', methods=['GET'])
 @app.route('/<board_type>/delete', methods=['POST'])
 @flask_login.login_required
 def delete(board_type):
@@ -658,9 +657,10 @@ def delete(board_type):
         # POST method 받아오는 방법
         page = request.form['page']
         sent_id = request.form['sent_id']
+        article_id = request.form['article_id']
 
         db_helper.delete_by_id('SentenceTable',sent_id)
-        return redirect(url_for('text_board', page=page))
+        return redirect(url_for('text_board', page=page, article_id=article_id))
 
 
 
@@ -710,7 +710,7 @@ def text_create():
         db_helper.insert_new_text(added_dict)
 
 
-        return redirect(url_for('text_board', page = page, user_id=user_id))
+        return redirect(url_for('text_board', page = page, user_id=user_id, article_id=0))
 
 
 @app.route('/<board_type>/search', methods=['GET'])

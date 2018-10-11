@@ -11,6 +11,9 @@ class DB_Helper:
     def now(self):
         return time.strftime('%Y-%m-%d %H:%M:%S')
 
+    def now(self):
+        return time.strftime('%Y-%m-%d %H:%M:%S')
+
     def print_sql(self, sql):
         if len(sql) >= self.print_sql_len:
             sql_print = sql[:self.print_sql_len] + '...'
