@@ -55,7 +55,7 @@
             {% set action = "/text_board?page=" ~ page %}
         {% endif %}
 
-        {% if article_id is defined %}
+        {% if article_id is defined and article_id != 'None' %}
             {% set action = action + "&article_id=" ~ article_id %}
         {% endif %}
 

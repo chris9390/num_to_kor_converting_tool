@@ -210,6 +210,8 @@ def overlap_check():
 
     user_id = request.form['id']
 
+    if user_id.strip() == '':
+        return 'empty'
 
     user_list = db_helper.select_one_column('user_id', 'UserTable')
     for i in user_list:
@@ -244,8 +246,7 @@ def reload_text_board(search_msg):
     if (article_id is not None) and (article_id != 'None'):
         sid1 = db_helper.select_data_from_table_by_id('article_sid1', 'ArticleTable', article_id)
         sid2 = db_helper.select_data_from_table_by_id('article_sid2', 'ArticleTable', article_id)
-    #sid1 = request.args.get('sid1')
-    #sid2 = request.args.get('sid2')
+
 
 
     # 딕셔너리 초기화
@@ -273,6 +274,9 @@ def reload_text_board(search_msg):
         if key != '':
             sid2_count[key] += 1
 
+
+    # 1 이면 숫자 포함한 문장만 보여주고 0이면 숫자 없는 문장만 보여준다
+    inc_num = request.args.get('inc_num')
 
 
 
@@ -331,7 +335,9 @@ def reload_text_board(search_msg):
 
         total_count = db_helper.total_count_clicked_article(article_id)
         article_title = db_helper.select_data_from_table_by_id('article_title', 'ArticleTable', article_id)
-        board_article = db_helper.call_sentence_by_article_id(page, per_page, article_id, asc1_desc0, col_name)
+
+
+        board_article = db_helper.call_sentence_by_article_id(page, per_page, article_id, asc1_desc0, col_name, inc_num)
 
 
         pagination = Pagination(page=page,
@@ -354,7 +360,8 @@ def reload_text_board(search_msg):
                                article_title=article_title,
                                article_id=article_id,
                                sid1=sid1,
-                               sid2=sid2)
+                               sid2=sid2,
+                               inc_num=inc_num)
 
 
 
@@ -384,6 +391,8 @@ def reload_text_board(search_msg):
                                sid1_count=sid1_count,
                                sid2_count=sid2_count,
                                article_id=article_id)
+
+
 
 
 def reload_article_board(search_msg):
@@ -698,7 +707,7 @@ def text_create():
 
         largest_sent_id = db_helper.select_largest_sent_id()
 
-
+        # 새로운 텍스트의 문장 번호는 현재까지 저장된 문장들 중 가장 큰 번호 +1
         added_dict['sent_id'] = largest_sent_id + 1
         added_dict['sent_original'] = text_create
 
@@ -707,8 +716,12 @@ def text_create():
         added_dict['ArticleTable_article_id'] = 0
 
 
+
+        # 새로운 텍스트 DB에 등록
         db_helper.insert_new_text(added_dict)
 
+        # 0번 기사의 article_sent_count 1증가
+        db_helper.update_article_zero()
 
         return redirect(url_for('text_board', page = page, user_id=user_id, article_id=0))
 
@@ -778,10 +791,16 @@ def order(board_type):
     elif board_type == 'text_board':
         # 검색한 경우 ordering
         if search_msg is not None:
-            return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, search_msg=search_msg, article_id=article_id))
+            if article_id != 'undefined':
+                return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, search_msg=search_msg, article_id=article_id))
+            else:
+                return redirect(url_for('text_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg))
         # 검색하지 않았을 경우 ordering
         else:
-            return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, article_id=article_id))
+            if article_id != 'undefined':
+                return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, article_id=article_id))
+            else:
+                return redirect(url_for('text_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page))
 
 
 

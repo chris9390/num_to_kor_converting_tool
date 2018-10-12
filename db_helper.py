@@ -3,6 +3,7 @@ from flask_paginate import get_page_args, Pagination
 import pymysql
 
 
+
 class DB_Helper:
     def __init__(self, conn):
         self.conn = conn
@@ -88,7 +89,19 @@ class DB_Helper:
     # ===============================================================================================
     # ===============================================================================================
 
+    def insert_new_article(self, id, url, title):
+        c = self.conn.cursor()
 
+        sql = "INSERT INTO ArticleTable (article_id, article_url, article_title) VALUES ('%s', '%s', '%s')" % (id, url, title)
+
+        self.print_sql(sql)
+
+        c.execute(sql)
+        self.conn.commit()
+
+        print("Number of rows inserted: %d" % c.rowcount)
+
+        c.close()
 
 
     def insert_new_text(self, dict):
@@ -262,12 +275,6 @@ class DB_Helper:
     def update_sent_converted(self, text, id):
         c = self.conn.cursor()
 
-        '''
-        if "'" in text:
-            text = text.replace("'", "''")
-        sql = 'UPDATE SentenceTable SET sent_converted = \'%s\' WHERE sent_id = %s' % (text, id)
-        '''
-
         sql = "UPDATE SentenceTable SET sent_converted = '%s' WHERE sent_id = %s" % (text, id)
 
         self.print_sql(sql)
@@ -387,6 +394,18 @@ class DB_Helper:
         print("Number of rows updated: %d" % c.rowcount)
         return
 
+    def update_article_zero(self):
+        c = self.conn.cursor()
+
+        sql = "UPDATE ArticleTable SET article_sent_count = article_sent_count + 1 WHERE article_id = 0"
+
+        self.print_sql(sql)
+
+        c.execute(sql)
+        self.conn.commit()
+
+        print("Number of rows updated: %d" % c.rowcount)
+        c.close()
 
     # ===============================================================================================
 
@@ -567,25 +586,41 @@ class DB_Helper:
         return rows
 
 
-    def call_sentence_by_article_id(self, page, per_page, article_id, asc1_desc0, col_name):
+    def call_sentence_by_article_id(self, page, per_page, article_id, asc1_desc0, col_name, inc_num):
         c = self.conn.cursor()
 
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
         limit_start = per_page * (page - 1)
 
+
+        # 숫자 미포함
+        if inc_num == '0':
+            regex_req = " AND ((sent_original NOT REGEXP '[0-9]' AND sent_confirm = 0) OR (sent_converted NOT REGEXP '[0-9]' AND sent_confirm = 1))"
+        # 숫자 포함
+        elif inc_num == '1':
+            regex_req = " AND ((sent_original REGEXP '[0-9]' AND sent_confirm = 0) OR (sent_converted REGEXP '[0-9]' AND sent_confirm = 1))"
+        # 모두
+        else:
+            regex_req = ""
+
+
+
         if asc1_desc0 == '1':
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST INNER join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
+            sql += regex_req
             sql += " ORDER BY %s %s" % (col_name, 'ASC')
             sql += " LIMIT %s, %s" % (limit_start, per_page)
         elif asc1_desc0 == '0':
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST INNER join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
+            sql += regex_req
             sql += " ORDER BY %s %s" % (col_name, 'DESC')
             sql += " LIMIT %s, %s" % (limit_start, per_page)
         elif asc1_desc0 == None:
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST INNER join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
             sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
+            sql += regex_req
             sql += " LIMIT %s, %s" % (limit_start, per_page)
 
 
