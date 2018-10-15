@@ -6,6 +6,7 @@
 
         $(document).ready(function(){
 
+
             // 모달창에서 '예'를 클릭하면
             $(".MyInputClass").click(function(){
 
@@ -19,18 +20,71 @@
             $("input[name='option']").change(function() {
                 var radio_id = $("input[name='option']:checked").attr('id');
 
-                // 모든 문장
-                if(radio_id == 'option1'){
-                    location.href = '/text_board?article_id={{article_id}}&page=1&col_name=sent_id&asc1_desc0=1';
+
+                // 모든 문장 라디오 버튼
+                if(radio_id == 'option1') {
+
+                    // 전체 문장 + 검색
+                    if ('{{sentence_board_type}}' == 1) {
+                        location.href = '/text_board?search_msg={{search_msg}}&page=1&col_name=sent_id&asc1_desc0=1';
+                    }
+                    // 기사 클릭
+                    else if ('{{sentence_board_type}}' == 2) {
+                        location.href = '/text_board?article_id={{article_id}}&page=1&col_name=sent_id&asc1_desc0=1';
+                    }
+                    // 기사 클릭 + 검색
+                    else if ('{{sentence_board_type}}' == 3) {
+                        location.href = '/text_board?article_id={{article_id}}&search_msg={{search_msg}}&page=1&col_name=sent_id&asc1_desc0=1';
+                    }
+                    // 전체 문장
+                    else if ('{{sentence_board_type}}' == 4){
+                        location.href = '/text_board?page=1&col_name=sent_id&asc1_desc0=1';
+                    }
                 }
-                // 숫자 포함 문장
+
+
+                // 숫자 포함 문장 라디오 버튼
                 else if(radio_id == 'option2'){
-                    location.href = '/text_board?article_id={{article_id}}&page=1&col_name=sent_id&asc1_desc0=1&inc_num=1';
+
+                    // 전체 문장 + 검색
+                    if ('{{sentence_board_type}}' == 1) {
+                        location.href = '/text_board?search_msg={{search_msg}}&page=1&col_name=sent_id&asc1_desc0=1&inc_num=1';
+                    }
+                    // 기사 클릭
+                    else if ('{{sentence_board_type}}' == 2) {
+                        location.href = '/text_board?article_id={{article_id}}&page=1&col_name=sent_id&asc1_desc0=1&inc_num=1';
+                    }
+                    // 기사 클릭 + 검색
+                    else if ('{{sentence_board_type}}' == 3) {
+                        location.href = '/text_board?article_id={{article_id}}&search_msg={{search_msg}}&page=1&col_name=sent_id&asc1_desc0=1&inc_num=1';
+                    }
+                    // 전체 문장
+                    else if ('{{sentence_board_type}}' == 4){
+                        location.href = '/text_board?page=1&col_name=sent_id&asc1_desc0=1&inc_num=1';
+                    }
                 }
-                // 숫자 미포함 문장
+
+                // 숫자 미포함 문장 라디오 버튼
                 else if(radio_id == 'option3'){
-                    location.href = '/text_board?article_id={{article_id}}&page=1&col_name=sent_id&asc1_desc0=1&inc_num=0';
+
+                    // 전체 문장 + 검색
+                    if ('{{sentence_board_type}}' == 1) {
+                        location.href = '/text_board?search_msg={{search_msg}}&page=1&col_name=sent_id&asc1_desc0=1&inc_num=0';
+                    }
+                    // 기사 클릭
+                    else if ('{{sentence_board_type}}' == 2) {
+                        location.href = '/text_board?article_id={{article_id}}&page=1&col_name=sent_id&asc1_desc0=1&inc_num=0';
+                    }
+                    // 기사 클릭 + 검색
+                    else if ('{{sentence_board_type}}' == 3) {
+                        location.href = '/text_board?article_id={{article_id}}&search_msg={{search_msg}}&page=1&col_name=sent_id&asc1_desc0=1&inc_num=0';
+                    }
+                    // 전체 문장
+                    else if ('{{sentence_board_type}}' == 4){
+                        location.href = '/text_board?page=1&col_name=sent_id&asc1_desc0=1&inc_num=0';
+                    }
                 }
+
                 else{
                     alert('오류!');
                 }
@@ -38,6 +92,7 @@
             });
 
 
+            // 라디오 버튼 체크 상태 업데이트
             if('{{inc_num}}' == 0){
                 $("#option3").prop("checked", true);
             }
@@ -94,6 +149,20 @@
 
         }
 
+        function search_text(){
+            var search_msg = $("#SearchText").val().trim();
+
+            if(search_msg == ''){
+                alert('검색어를 입력해주십시오.');
+            }
+            else{
+                $("#frm").attr("method", "get");
+                $("#frm").attr("action", "/text_board/search");
+                $("#frm").submit();
+            }
+
+        }
+
 
         function getParameterByName(url, param_name){
             var after_part = url.split("?")[1];
@@ -145,7 +214,10 @@
 
 
         <div class="row">
+            <!--
             <form class="form-inline my-2" method="get" action="/text_board/search" role="search">
+            -->
+            <form class="form-inline my-2" id="frm" role="search">
                 <div class="col-md-10">
                     <div class="form-group">
                         <input type="text" class="form-control col-md-12" id="SearchText" name="search_msg" placeholder="문장을 검색해주세요.">
@@ -155,14 +227,14 @@
                 </div>
 
                 <div class="form-group">
-                    <input type="submit" class="btn btn-primary" value="검색">
+                    <input type="submit" class="btn btn-primary" onclick="search_text()" value="검색">
                 </div>
             </form>
         </div>
 
 
 
-        {% if article_title is defined %}
+        {% if article_title is defined and article_title is not none %}
         <div class="row my-4">
             <div class="col col-2 text-left">
                 {% if article_id == '0' %}
@@ -252,18 +324,17 @@
             <div class="col-2"></div>
 
             <label class="btn btn-primary mr-2">
-                <input type="radio" name="option" checked="checked" id="option1" value="모든 문장"> 모든 문장
+                <input type="radio" name="option" checked="checked" id="option1" value="모든 문장"> 모든 문장 ({{inc_num_none_count}})
             </label>
 
             <label class="btn btn-primary mr-2">
-                <input type="radio" name="option" id="option2" value="숫자 포함 문장"> 숫자 포함 문장
+                <input type="radio" name="option" id="option2" value="숫자 포함 문장"> 숫자 포함 문장 ({{inc_num_1_count}})
             </label>
 
             <label class="btn btn-primary">
-                <input type="radio" name="option" id="option3" value="숫자 미포함 문장"> 숫자 미포함 문장
+                <input type="radio" name="option" id="option3" value="숫자 미포함 문장"> 숫자 미포함 문장 ({{inc_num_0_count}})
             </label>
         </div>
-
 
 
 
@@ -433,7 +504,7 @@
 
         <div class="row my-4">
             <div class="col col-2 text-left">
-                {% if article_title is defined %}
+                {% if article_title is defined and article_title is not none %}
                     {% if article_id == '0' %}
                         <input type="button" class="btn btn-primary btn-block my-2" value="모든 기사 목록" onclick="location.href='/article_board?page=1&col_name=article_id&asc1_desc0=1';">
                     {% else %}

@@ -239,11 +239,17 @@ def reload_text_board(search_msg):
 
     user_id = flask_login.current_user.user_id
 
+    if search_msg == 'None' or search_msg == '':
+        search_msg = None
 
     sid1 = None
     sid2 = None
     article_id = request.args.get('article_id')
-    if (article_id is not None) and (article_id != 'None'):
+
+    if article_id == 'None' or article_id == '':
+        article_id = None
+
+    if article_id is not None:
         sid1 = db_helper.select_data_from_table_by_id('article_sid1', 'ArticleTable', article_id)
         sid2 = db_helper.select_data_from_table_by_id('article_sid2', 'ArticleTable', article_id)
 
@@ -289,19 +295,35 @@ def reload_text_board(search_msg):
     # ===================================================
 
 
-    # 검색한 게시글 반환
-    if search_msg is not None:
-        print('검색')
+
+    # ===================================================
+    # 문장 게시판 종류(sentence_board_type)
+    # 1. 전체 문장 + 검색
+    # 2. 기사 클릭
+    # 3. 기사 클릭 + 검색
+    # 4. 전체 문장
+    # ===================================================
+
+
+    # 모든 기사에서 검색한 게시글 반환
+    if search_msg is not None and article_id is None:
+        print('기사 전체 검색')
+        sentence_board_type = 1
 
         search_msg_escaped = db_conn.escape_string(search_msg)
-        total_count = db_helper.total_count_text_search(search_msg_escaped)
+        total_count = db_helper.total_count_text_search(search_msg_escaped, inc_num)
+
+        inc_num_0_count = db_helper.total_count_text_search(search_msg_escaped, '0')
+        inc_num_1_count = db_helper.total_count_text_search(search_msg_escaped, '1')
+        inc_num_none_count = db_helper.total_count_text_search(search_msg_escaped, None)
+
 
         article_title = None
-        if (article_id is not None) and (article_id != 'None'):
+        if article_id is not None:
             article_title = db_helper.select_data_from_table_by_id('article_title', 'ArticleTable', article_id)
 
 
-        board_search = db_helper.call_search_sentence(page, per_page, search_msg, asc1_desc0, col_name)
+        board_search = db_helper.call_search_sentence(page, per_page, search_msg_escaped, asc1_desc0, col_name, inc_num)
 
 
         pagination = Pagination(page=page,
@@ -318,7 +340,7 @@ def reload_text_board(search_msg):
                                user_id=user_id,
                                pagination=pagination,
                                page=page,
-                               search_msg=search_msg,
+                               search_msg=search_msg_escaped,
                                asc1_desc0=asc1_desc0,
                                col_name=col_name,
                                sid1_count=sid1_count,
@@ -326,18 +348,29 @@ def reload_text_board(search_msg):
                                article_title=article_title,
                                article_id=article_id,
                                sid1=sid1,
-                               sid2=sid2)
+                               sid2=sid2,
+                               inc_num=inc_num,
+                               inc_num_none_count=inc_num_none_count,
+                               inc_num_0_count=inc_num_0_count,
+                               inc_num_1_count=inc_num_1_count,
+                               sentence_board_type=sentence_board_type)
 
 
     # 특정 기사를 클릭한 경우
-    elif article_id is not None:
+    elif search_msg is None and article_id is not None:
         print('특정 기사 클릭')
+        sentence_board_type = 2
 
-        total_count = db_helper.total_count_clicked_article(article_id)
+        total_count = db_helper.total_count_clicked_article(article_id, inc_num)
+
+        inc_num_0_count = db_helper.total_count_clicked_article(article_id, '0')
+        inc_num_1_count = db_helper.total_count_clicked_article(article_id, '1')
+        inc_num_none_count = db_helper.total_count_clicked_article(article_id, None)
+
         article_title = db_helper.select_data_from_table_by_id('article_title', 'ArticleTable', article_id)
 
 
-        board_article = db_helper.call_sentence_by_article_id(page, per_page, article_id, asc1_desc0, col_name, inc_num)
+        board_clicked_article = db_helper.call_sentence_by_article_id(page, per_page, article_id, asc1_desc0, col_name, inc_num)
 
 
         pagination = Pagination(page=page,
@@ -349,7 +382,7 @@ def reload_text_board(search_msg):
                                 show_single_page=True)
 
         return render_template('text_board.html',
-                               board_total=board_article,
+                               board_total=board_clicked_article,
                                user_id=user_id,
                                pagination=pagination,
                                page=page,
@@ -361,15 +394,72 @@ def reload_text_board(search_msg):
                                article_id=article_id,
                                sid1=sid1,
                                sid2=sid2,
-                               inc_num=inc_num)
+                               inc_num=inc_num,
+                               inc_num_none_count=inc_num_none_count,
+                               inc_num_0_count=inc_num_0_count,
+                               inc_num_1_count=inc_num_1_count,
+                               sentence_board_type=sentence_board_type)
+
+
+
+    # 특정 기사에서 검색한 문장 반환
+    elif search_msg is not None and article_id is not None:
+        print('특정 기사 검색')
+        sentence_board_type = 3
+
+        search_msg_escaped = db_conn.escape_string(search_msg)
+        total_count = db_helper.total_count_clicked_search(article_id, search_msg_escaped, inc_num)
+
+        inc_num_0_count = db_helper.total_count_clicked_search(article_id, search_msg_escaped, '0')
+        inc_num_1_count = db_helper.total_count_clicked_search(article_id, search_msg_escaped, '1')
+        inc_num_none_count = db_helper.total_count_clicked_search(article_id, search_msg_escaped, None)
+
+        article_title = db_helper.select_data_from_table_by_id('article_title', 'ArticleTable', article_id)
+
+        board_clicked_search = db_helper.call_clicked_search(page, per_page, article_id, search_msg_escaped, asc1_desc0, col_name, inc_num)
+
+        pagination = Pagination(page=page,
+                                per_page=per_page,
+                                total=total_count,
+                                record_name='Sentences',
+                                bs_version=4,
+                                alignment='center',
+                                show_single_page=True)
+
+        return render_template('text_board.html',
+                               board_total=board_clicked_search,
+                               user_id=user_id,
+                               pagination=pagination,
+                               page=page,
+                               search_msg=search_msg_escaped,
+                               asc1_desc0=asc1_desc0,
+                               col_name=col_name,
+                               sid1_count=sid1_count,
+                               sid2_count=sid2_count,
+                               article_title=article_title,
+                               article_id=article_id,
+                               sid1=sid1,
+                               sid2=sid2,
+                               inc_num=inc_num,
+                               inc_num_none_count=inc_num_none_count,
+                               inc_num_0_count=inc_num_0_count,
+                               inc_num_1_count=inc_num_1_count,
+                               sentence_board_type=sentence_board_type)
 
 
 
     # 게시글 전체 반환
-    else:
-        print('전체')
-        total_count = db_helper.total_count_every_sentences()
-        board_total = db_helper.call_every_sentence(page, per_page, asc1_desc0, col_name)
+    elif search_msg is None and article_id is None:
+        print('문장 전체')
+        sentence_board_type = 4
+
+        total_count = db_helper.total_count_every_sentences(inc_num)
+
+        inc_num_0_count = db_helper.total_count_every_sentences('0')
+        inc_num_1_count = db_helper.total_count_every_sentences('1')
+        inc_num_none_count = db_helper.total_count_every_sentences(None)
+
+        board_total = db_helper.call_every_sentence(page, per_page, asc1_desc0, col_name, inc_num)
 
 
         pagination = Pagination(page=page,
@@ -390,7 +480,11 @@ def reload_text_board(search_msg):
                                col_name=col_name,
                                sid1_count=sid1_count,
                                sid2_count=sid2_count,
-                               article_id=article_id)
+                               inc_num=inc_num,
+                               inc_num_none_count=inc_num_none_count,
+                               inc_num_0_count=inc_num_0_count,
+                               inc_num_1_count=inc_num_1_count,
+                               sentence_board_type=sentence_board_type)
 
 
 
@@ -402,7 +496,13 @@ def reload_article_board(search_msg):
     user_id = flask_login.current_user.user_id
 
     sid1 = request.args.get('sid1')
+    if sid1 == '':
+        sid1 = None
     sid2 = request.args.get('sid2')
+    if sid2 == '':
+        sid2 = None
+
+
 
 
 
@@ -471,7 +571,7 @@ def reload_article_board(search_msg):
 
 
     # 카테고리 목록을 클릭한 경우
-    elif (sid1 is not None and sid2 is not None) and (sid1 != '' and sid2 != ''):
+    elif sid1 is not None and sid2 is not None:
         print('카테고리')
         total_count = db_helper.total_count_article_category(sid1, sid2)
         board_total = db_helper.call_article_by_category(page, per_page, asc1_desc0, col_name, sid1, sid2)
@@ -499,8 +599,8 @@ def reload_article_board(search_msg):
 
 
 
-
-    else:
+    # 기사 검색한 것도 아니고, 카테고리가 클릭된 것도 아니면 전체 기사 출력
+    elif search_msg is None and sid1 is None and sid2 is None:
         print('전체')
         total_count = db_helper.total_count_every_articles()
 
@@ -659,6 +759,7 @@ def delete(board_type):
         page = request.form['page']
         article_id = request.form['article_id']
 
+        # 해당 article_id 삭제
         db_helper.delete_by_id('ArticleTable', article_id)
         return redirect(url_for('article_board', page=page))
 
@@ -668,7 +769,10 @@ def delete(board_type):
         sent_id = request.form['sent_id']
         article_id = request.form['article_id']
 
+        # 해당 sent_id 삭제
         db_helper.delete_by_id('SentenceTable',sent_id)
+        # 문장을 하나 삭제 했기 때문에 article_sent_count도 -1 해준다.
+        db_helper.update_article_sent_count(-1, article_id)
         return redirect(url_for('text_board', page=page, article_id=article_id))
 
 
@@ -683,7 +787,6 @@ def text_create():
     print(request.method)
 
     user_id = flask_login.current_user.user_id
-
     page = request.args.get('page')
 
 
@@ -721,7 +824,7 @@ def text_create():
         db_helper.insert_new_text(added_dict)
 
         # 0번 기사의 article_sent_count 1증가
-        db_helper.update_article_zero()
+        db_helper.update_article_sent_count(+1, 0)
 
         return redirect(url_for('text_board', page = page, user_id=user_id, article_id=0))
 
@@ -736,7 +839,7 @@ def search(board_type):
     sid1 = request.args.get('sid1')
     sid2 = request.args.get('sid2')
 
-
+    '''
     # 빈 문자열 입력시 에러
     if search_msg.strip() == "":
         flash('1글자 이상 써주십시오.','alert-danger')
@@ -746,7 +849,7 @@ def search(board_type):
 
         elif board_type == 'text_board':
             return redirect(url_for('text_board', article_id=article_id, page=1, col_name='article_id', asc1_desc0=1))
-
+    '''
 
     print("article id: " + str(article_id))
     print("search msg: " + search_msg)

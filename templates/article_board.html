@@ -64,6 +64,20 @@
         }
 
 
+        function search_article(){
+            var search_msg = $("#SearchArticle").val().trim();
+
+            if(search_msg == ''){
+                alert('검색어를 입력해주십시오.');
+            }
+            else{
+                $("#frm").attr("method", "get");
+                $("#frm").attr("action", "/article_board/search");
+                $("#frm").submit();
+            }
+        }
+
+
         function getParameterByName(url, param_name){
             var after_part = url.split("?")[1];
             var param_arr = after_part.split("&");
@@ -124,10 +138,13 @@
     <div class="container-fluid">
 
         <div class="row">
+            <!--
             <form class="form-inline my-2" method="get" action="/article_board/search" role="search">
+            -->
+            <form class="form-inline my-2" id="frm" role="search">
                 <div class="col-md-10">
                     <div class="form-group">
-                        <input type="text" class="form-control col-md-12" id="SearchText" name="search_msg" placeholder="기사 제목을 검색해주세요.">
+                        <input type="text" class="form-control col-md-12" id="SearchArticle" name="search_msg" placeholder="기사 제목을 검색해주세요.">
                         <input type="hidden" name="page" value="{{page}}">
                         {% if sid1 is defined and sid2 is defined %}
                             <input type="hidden" name="sid1" value="{{sid1}}">
@@ -137,7 +154,7 @@
                 </div>
 
                 <div class="form-group">
-                    <input type="submit" class="btn btn-primary" value="검색">
+                    <input type="submit" class="btn btn-primary" onclick="search_article()" value="검색">
                 </div>
             </form>
         </div>

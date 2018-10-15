@@ -394,10 +394,12 @@ class DB_Helper:
         print("Number of rows updated: %d" % c.rowcount)
         return
 
-    def update_article_zero(self):
+
+
+    def update_article_sent_count(self, plus_or_minus, id):
         c = self.conn.cursor()
 
-        sql = "UPDATE ArticleTable SET article_sent_count = article_sent_count + 1 WHERE article_id = 0"
+        sql = "UPDATE ArticleTable SET article_sent_count = article_sent_count + %s WHERE article_id = %s" % (plus_or_minus, id)
 
         self.print_sql(sql)
 
@@ -406,6 +408,8 @@ class DB_Helper:
 
         print("Number of rows updated: %d" % c.rowcount)
         c.close()
+
+
 
     # ===============================================================================================
 
@@ -474,7 +478,7 @@ class DB_Helper:
 
 
 
-    def call_every_sentence(self, page, per_page, asc1_desc0, col_name):
+    def call_every_sentence(self, page, per_page, asc1_desc0, col_name, inc_num):
 
         c = self.conn.cursor()
 
@@ -482,19 +486,34 @@ class DB_Helper:
         # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
         limit_start = per_page * (page - 1)
 
+        # 숫자 미포함
+        if inc_num == '0':
+            regex_req = " WHERE ((sent_original NOT REGEXP '[0-9]' AND sent_confirm = 0) OR (sent_converted NOT REGEXP '[0-9]' AND sent_confirm = 1))"
+        # 숫자 포함
+        elif inc_num == '1':
+            regex_req = " WHERE ((sent_original REGEXP '[0-9]' AND sent_confirm = 0) OR (sent_converted REGEXP '[0-9]' AND sent_confirm = 1))"
+        # 모두
+        else:
+            regex_req = ""
+
+
+
 
         if asc1_desc0 == '1':
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += regex_req
             sql += " ORDER BY %s %s" % (col_name, 'ASC')
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
         elif asc1_desc0 == '0':
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += regex_req
             sql += " ORDER BY %s %s" % (col_name, 'DESC')
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
         elif asc1_desc0 == None:
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += regex_req
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
 
@@ -513,7 +532,7 @@ class DB_Helper:
 
 
 
-    def call_search_sentence(self, page, per_page, search_msg, asc1_desc0, col_name):
+    def call_search_sentence(self, page, per_page, search_msg, asc1_desc0, col_name, inc_num):
 
         c = self.conn.cursor()
 
@@ -521,19 +540,33 @@ class DB_Helper:
         limit_start = per_page * (page - 1)
 
 
+        # 숫자 미포함
+        if inc_num == '0':
+            regex_req = " AND ((sent_original NOT REGEXP '[0-9]' AND sent_confirm = 0) OR (sent_converted NOT REGEXP '[0-9]' AND sent_confirm = 1))"
+        # 숫자 포함
+        elif inc_num == '1':
+            regex_req = " AND ((sent_original REGEXP '[0-9]' AND sent_confirm = 0) OR (sent_converted REGEXP '[0-9]' AND sent_confirm = 1))"
+        # 모두
+        else:
+            regex_req = ""
+
+
         if asc1_desc0 == '1':
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
-            sql += " WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)" % (search_msg, search_msg)
+            sql += " WHERE ((sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1))" % (search_msg, search_msg)
+            sql += regex_req
             sql += " ORDER BY %s %s" % (col_name, 'ASC')
             sql += " LIMIT %s,%s" % (limit_start, per_page)
         elif asc1_desc0 == '0':
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
-            sql += " WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)" % (search_msg, search_msg)
+            sql += " WHERE ((sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1))" % (search_msg, search_msg)
+            sql += regex_req
             sql += " ORDER BY %s %s" % (col_name, 'DESC')
             sql += " LIMIT %s,%s" % (limit_start, per_page)
         elif asc1_desc0 == None:
             sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST left join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
-            sql += " WHERE (sent_original LIKE \'%%%s%%\' AND sent_confirm = 0) OR (sent_converted LIKE \'%%%s%%\' AND sent_confirm = 1)" % (search_msg, search_msg)
+            sql += " WHERE ((sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1))" % (search_msg, search_msg)
+            sql += regex_req
             sql += " LIMIT %s,%s" % (limit_start, per_page)
 
 
@@ -636,6 +669,56 @@ class DB_Helper:
 
         rows = c.fetchall()
         return rows
+
+
+
+    def call_clicked_search(self, page, per_page, article_id, search_msg, asc1_desc0, col_name, inc_num):
+        c = self.conn.cursor()
+
+        # 1페이지는 0부터 시작, 2페이지는 10부터 시작...
+        limit_start = per_page * (page - 1)
+
+        # 숫자 미포함
+        if inc_num == '0':
+            regex_req = " AND ((sent_original NOT REGEXP '[0-9]' AND sent_confirm = 0) OR (sent_converted NOT REGEXP '[0-9]' AND sent_confirm = 1))"
+        # 숫자 포함
+        elif inc_num == '1':
+            regex_req = " AND ((sent_original REGEXP '[0-9]' AND sent_confirm = 0) OR (sent_converted REGEXP '[0-9]' AND sent_confirm = 1))"
+        # 모두
+        else:
+            regex_req = ""
+
+
+        if asc1_desc0 == '1':
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST INNER join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
+            sql += " AND ((sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1))" % (search_msg, search_msg)
+            sql += regex_req
+            sql += " ORDER BY %s %s" % (col_name, 'ASC')
+            sql += " LIMIT %s, %s" % (limit_start, per_page)
+        elif asc1_desc0 == '0':
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST INNER join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
+            sql += " AND ((sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1))" % (search_msg, search_msg)
+            sql += regex_req
+            sql += " ORDER BY %s %s" % (col_name, 'DESC')
+            sql += " LIMIT %s, %s" % (limit_start, per_page)
+        elif asc1_desc0 == None:
+            sql = "SELECT ST.*, AT.article_id, AT.article_collected_date FROM SentenceTable as ST INNER join ArticleTable as AT on ST.ArticleTable_article_id = AT.article_id"
+            sql += " WHERE ST.ArticleTable_article_id = %s" % article_id
+            sql += " AND ((sent_original LIKE '%%%s%%' AND sent_confirm = 0) OR (sent_converted LIKE '%%%s%%' AND sent_confirm = 1))" % (search_msg, search_msg)
+            sql += regex_req
+            sql += " LIMIT %s, %s" % (limit_start, per_page)
+
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        c.close()
+        return rows
+
+
+
 
 
 
