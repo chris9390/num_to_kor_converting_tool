@@ -835,7 +835,6 @@ def search(board_type):
 
     article_id = request.args.get('article_id')
     search_msg = request.args.get('search_msg')
-    page = request.args.get('page')
     sid1 = request.args.get('sid1')
     sid2 = request.args.get('sid2')
 
@@ -853,13 +852,12 @@ def search(board_type):
 
     print("article id: " + str(article_id))
     print("search msg: " + search_msg)
-    print("page: " + str(page))
 
 
     if board_type == 'article_board':
-        return redirect(url_for('article_board', search_msg=search_msg, page=page))
+        return redirect(url_for('article_board', search_msg=search_msg))
     elif board_type == 'text_board':
-        return redirect(url_for('text_board', search_msg=search_msg, page=page, article_id=article_id))
+        return redirect(url_for('text_board', search_msg=search_msg, article_id=article_id))
 
 
 
@@ -873,46 +871,36 @@ def order(board_type):
     asc1_desc0 = request.args.get('asc1_desc0')
     search_msg = request.args.get('search_msg')
     article_id = request.args.get('article_id')
+    inc_num = request.args.get('inc_num')
     sid1 = request.args.get('sid1')
     sid2 = request.args.get('sid2')
 
+
     if board_type == 'article_board':
-        # 검색한 경우 ordering
-        if search_msg is not None:
-            if sid1 != 'undefined':
-                return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg, sid1=sid1, sid2=sid2))
-            else:
-                return redirect(
-                    url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg))
-        # 검색하지 않았을 경우 ordering
+        if sid1 != 'undefined':
+            return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg, sid1=sid1, sid2=sid2))
         else:
-            if sid1 != 'undefined':
-                return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, sid1=sid1, sid2=sid2))
-            else:
-                return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page))
+            return redirect(url_for('article_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg))
+
 
     elif board_type == 'text_board':
-        # 검색한 경우 ordering
-        if search_msg is not None:
-            if article_id != 'undefined':
-                return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, search_msg=search_msg, article_id=article_id))
-            else:
-                return redirect(url_for('text_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg))
-        # 검색하지 않았을 경우 ordering
+        if article_id != 'undefined':
+            return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, search_msg=search_msg, article_id=article_id, inc_num=inc_num))
         else:
-            if article_id != 'undefined':
-                return redirect(url_for('text_board', col_name = col_name, asc1_desc0 = asc1_desc0, page = page, article_id=article_id))
-            else:
-                return redirect(url_for('text_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page))
+            return redirect(url_for('text_board', col_name=col_name, asc1_desc0=asc1_desc0, page=page, search_msg=search_msg, inc_num=inc_num))
 
 
 
 
+@app.route('/export', methods=['GET', 'POST'])
+def export():
+    #user_id = flask_login.current_user.user_id
 
+    if request.method == 'GET':
+        return render_template('export.html')
 
-
-
-
+    elif request.method == 'POST':
+        return render_template('export.html')
 
 
 # ==================================================================================================================================

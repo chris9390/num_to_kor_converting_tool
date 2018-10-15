@@ -121,6 +121,7 @@
             var asc1_desc0 = getParameterByName(url, 'asc1_desc0');
             var search_msg = getParameterByName(url, 'search_msg');
             var article_id = getParameterByName(url, 'article_id');
+            var inc_num = getParameterByName(url, 'inc_num');
             var before_selected_col = getParameterByName(url, 'col_name');
             var ordering = 1;
 
@@ -139,11 +140,22 @@
 
             // 검색한 경우 ordering
             if(search_msg){
-                location.replace("/" + 'text_board' + "/order?article_id=" + article_id + "&col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page + "&search_msg=" + search_msg);
+                if(inc_num){
+                    location.replace("/" + 'text_board' + "/order?article_id=" + article_id + "&col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page + "&search_msg=" + search_msg + "&inc_num=" + inc_num);
+                }
+                else{
+                    location.replace("/" + 'text_board' + "/order?article_id=" + article_id + "&col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page + "&search_msg=" + search_msg);
+                }
             }
             // 검색하지 않았을 경우 ordering
             else{
-                location.replace("/" + 'text_board' + "/order?article_id=" + article_id + "&col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page);
+                if(inc_num){
+                    location.replace("/" + 'text_board' + "/order?article_id=" + article_id + "&col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page + "&inc_num=" + inc_num);
+                }
+                else{
+                    location.replace("/" + 'text_board' + "/order?article_id=" + article_id + "&col_name=" + id + "&asc1_desc0=" + ordering + "&page=" + page);
+                }
+
             }
 
 
@@ -197,8 +209,17 @@
 
 {% block nav %}
 <ul class="navbar-nav">
-    <li class="nav-item"><a class="nav-link" href="{{url_for('article_board', page=1, col_name='article_id', asc1_desc0=1)}}">Article Board</a></li>
-    <li class="nav-item active"><a class="nav-link" href="{{url_for('text_board', page=1, col_name='sent_id', asc1_desc0=1)}}">Sentence Board</a></li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('article_board', page=1, col_name='article_id', asc1_desc0=1)}}">Article Board</a>
+    </li>
+
+    <li class="nav-item active">
+        <a class="nav-link" href="{{url_for('text_board', page=1, col_name='sent_id', asc1_desc0=1)}}">Sentence Board</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link" href="{{url_for('export')}}">Export</a>
+    </li>
 </ul>
 
 <ul class="navbar-nav ml-auto">

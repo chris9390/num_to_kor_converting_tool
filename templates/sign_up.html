@@ -5,8 +5,20 @@
     {{super()}}
     <script>
         $(document).ready(function(){
+            var today = new Date();
+
+            $("#birth_id").datepicker({
+                uiLibrary:'bootstrap4',
+                header:true,
+                footer:true,
+                modal:true,
+                format:"yyyy-mm-dd",
+                maxDate:today
+            });
+
 
             $("#sign_up_button_id").prop("disabled", true);
+
 
 
             // 중복검사 성공후 다시 다른 아이디 입력하는 것을 방지
@@ -125,9 +137,9 @@
 
 
             <div class="form-group form-row">
-                <label class="col-form-label col-md-2" for="birth_id">생년월일 : </label>
+                <label class="col-form-label col-md-2">생년월일 : </label>
                 <div class="col-md-5">
-                    <input type="date" class="form-control" name="birth" id="birth_id">
+                    <input id="birth_id" class="form-control">
                 </div>
             </div>
 
