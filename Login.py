@@ -1,4 +1,4 @@
-from flask import Flask, request, session, render_template, redirect, url_for, flash, g
+from flask import Flask, request, session, render_template, redirect, url_for, flash, g, send_from_directory, send_file, make_response
 from flask_bootstrap import Bootstrap
 import flask_login
 import hashlib
@@ -8,6 +8,8 @@ from db_helper import DB_Helper
 from flask_paginate import Pagination
 from NumberToWord import *
 from datetime import timedelta
+import json
+import time
 
 
 app = Flask(__name__)
@@ -894,13 +896,76 @@ def order(board_type):
 
 @app.route('/export', methods=['GET', 'POST'])
 def export():
+    db_conn = get_db()
+    db_helper = DB_Helper(db_conn)
     #user_id = flask_login.current_user.user_id
 
     if request.method == 'GET':
         return render_template('export.html')
 
     elif request.method == 'POST':
-        return render_template('export.html')
+        fromdate = request.form['fromdate_hid']
+        todate = request.form['todate_hid']
+        sid1 = request.form['sid1']
+
+        try:
+            sid2 = request.form['sid2']
+        # sid2를 선택하지 않은 경우, 즉 sid1이 '전체' 인 경우
+        except:
+            sid2 = None
+
+
+
+        original_json_list = []
+        temp_dict = {}
+        temp_list = []
+
+        # 날짜 조건이 없는 경우
+        if fromdate == '' and todate == '':
+            if sid2 is not None:
+                if sid2 == '전체':
+                    article_rows = db_helper.select_article_with_sid1(sid1)
+                else:
+                    article_rows = db_helper.select_article_with_sid1_sid2(sid1, sid2)
+            elif sid2 is None:
+                article_rows = db_helper.select_article_with_no_cond()
+
+            for article_row in article_rows:
+                temp_dict['article_aid'] = article_row['article_aid']
+                temp_dict['article_url'] = article_row['article_url']
+                temp_dict['article_title'] = article_row['article_title']
+                temp_dict['article_uploaded_date'] = str(article_row['article_uploaded_date'])
+                temp_dict['article_collected_date'] = str(article_row['article_collected_date'])
+                temp_dict['article_sid1'] = article_row['article_sid1']
+                temp_dict['article_sid2'] = article_row['article_sid2']
+
+                sentence_rows = db_helper.select_every_rows_from_sentence_by_id(article_row['article_id'])
+                for sentence_row in sentence_rows:
+                    temp_list.append(sentence_row['sent_original'])
+
+                temp_dict['sentences'] = temp_list
+
+                original_json_list.append(temp_dict)
+
+        else:
+            if sid2 is not None:
+                if sid2 == '전체':
+                    article_rows = db_helper.select_article_with_date_sid1(sid1, fromdate, todate)
+                else:
+                    article_rows = db_helper.select_article_with_date_sid1_sid2(sid1, sid2, fromdate, todate)
+            elif sid2 is None:
+                article_rows = db_helper.select_article_with_date(fromdate, todate)
+
+        ######################################################################################################여기부터 계속
+
+
+        original_json = json.dumps(original_json_list)
+
+        response = make_response(original_json)
+        response.headers['Content-Disposition'] = "attachment; filename=original.json"
+        return response
+
+
 
 
 # ==================================================================================================================================

@@ -5,75 +5,93 @@
     {{super()}}
     <script>
         $(document).ready(function(){
-            var today = new Date();
 
-            var from =
             $("#fromdate").datepicker({
-                uiLibrary:'bootstrap4',
-                header:true,
-                footer:true,
-                modal:true,
-                format:"yyyy-mm-dd",
-                maxDate:today
+                format: 'yyyy-mm-dd',
+                autoclose:true,
+                todayHighlight:true
             });
 
             $("#todate").datepicker({
-                uiLibrary:'bootstrap4',
-                header:true,
-                footer:true,
-                modal:true,
-                format:"yyyy-mm-dd",
-                maxDate:today
+                format: 'yyyy-mm-dd',
+                autoclose:true,
+                todayHighlight:true
             });
 
 
-            $("#sel2_id").prop('disabled', true);
+            $("#sid2_id").prop('disabled', true);
 
-            $("#sel1_id").change(function(){
+            $("#sid1_id").change(function(){
                 var sid1 = $(this).val();
 
                 if(sid1 == '전체'){
-                    $("#sel2_id option").remove();
-                    $("#sel2_id").prop('disabled', true);
+                    $("#sid2_id option").remove();
+                    $("#sid2_id").prop('disabled', true);
                 }
                 else {
-                    $("#sel2_id").prop('disabled', false);
+                    $("#sid2_id").prop('disabled', false);
 
                     switch (sid1) {
                         case '정치':
-                            $("#sel2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>청와대</option><option>국회/정당</option><option>북한</option><option>행정</option><option>국방/외교</option><option>정치 일반</option>");
+                            $("#sid2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>청와대</option><option>국회/정당</option><option>북한</option><option>행정</option><option>국방/외교</option><option>정치 일반</option>");
                             break;
                         case '경제':
-                            $("#sel2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>금융</option><option>증권</option><option>산업/재계</option><option>중기/벤처</option><option>부동산</option><option>글로벌 경제</option><option>생활경제</option><option>경제 일반</option>");
+                            $("#sid2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>금융</option><option>증권</option><option>산업/재계</option><option>중기/벤처</option><option>부동산</option><option>글로벌 경제</option><option>생활경제</option><option>경제 일반</option>");
                             break;
                         case '사회':
-                            $("#sel2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>사건사고</option><option>교육</option><option>노동</option><option>언론</option><option>환경</option><option>인권/복지</option><option>식품/의료</option><option>지역</option><option>인물</option><option>사회 일반</option>");
+                            $("#sid2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>사건사고</option><option>교육</option><option>노동</option><option>언론</option><option>환경</option><option>인권/복지</option><option>식품/의료</option><option>지역</option><option>인물</option><option>사회 일반</option>");
                             break;
                         case '생활/문화':
-                            $("#sel2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>건강정보</option><option>자동차/시승기</option><option>도로/교통</option><option>여행/레저</option><option>음식/맛집</option><option>패션/뷰티</option><option>공연/전시</option><option>책</option><option>종교</option><option>날씨</option><option>생활문화 일반</option>");
+                            $("#sid2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>건강정보</option><option>자동차/시승기</option><option>도로/교통</option><option>여행/레저</option><option>음식/맛집</option><option>패션/뷰티</option><option>공연/전시</option><option>책</option><option>종교</option><option>날씨</option><option>생활문화 일반</option>");
                             break;
                         case '세계':
-                            $("#sel2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>아시아/호주</option><option>미국/중남미</option><option>유럽</option><option>중동/아프리카</option><option>세계 일반</option>");
+                            $("#sid2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>아시아/호주</option><option>미국/중남미</option><option>유럽</option><option>중동/아프리카</option><option>세계 일반</option>");
                             break;
                         case 'IT/과학':
-                            $("#sel2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>모바일</option><option>인터넷/SNS</option><option>통신/뉴미디어</option><option>IT 일반</option><option>보안/해킹</option><option>컴퓨터</option><option>게임/리뷰</option><option>과학 일반</option>");
+                            $("#sid2_id").html("<option class=\"font-weight-bold\">전체</option><option style=\"font-size: 1pt; background-color: #000000;\" disabled>&nbsp;</option><option>모바일</option><option>인터넷/SNS</option><option>통신/뉴미디어</option><option>IT 일반</option><option>보안/해킹</option><option>컴퓨터</option><option>게임/리뷰</option><option>과학 일반</option>");
                             break;
                     }
                 }
 
             });
 
-            var fromdate_val = $("#fromdate").data().val();
-
+            // 원본 출력 버튼 클릭시
             $("#original").click(function(){
-                alert('original!');
-                alert(fromdate_val);
+                var today = new Date();
+                var fromdate_val_temp = $("#fromdate").datepicker("getDate");
+                var fromdate_val = fromdate_val_temp.getFullYear() + '-' + (fromdate_val_temp.getMonth()+1) + '-' + fromdate_val_temp.getDate();
+                $("#fromdate_hid").val(fromdate_val);
+                var todate_val_temp = $("#todate").datepicker("getDate");
+                var todate_val = todate_val_temp.getFullYear() + '-' + (todate_val_temp.getMonth()+1) + '-' + todate_val_temp.getDate();
+                $("#todate_hid").val(todate_val);
 
-                if(fromdate_val == '' || todate_val == ''){
-                    alert('날짜를 모두 입력해주세요.');
+
+
+                // 오늘이 지난 날짜는 선택 불가능
+                if(fromdate_val_temp > today || todate_val_temp > today){
+                    alert('오늘(포함) 기준 이전 날짜만 선택 가능합니다. 다시 선택해주세요.');
+                }
+
+                // 시작 날짜와 끝날짜 둘 중 하나만 선택하면 오류
+                else if((fromdate_val_temp == null && todate_val_temp != null) || (fromdate_val_temp != null && todate_val_temp == null)){
+                    alert('시작/끝 날짜 중 하나만 선택할 수 없습니다. 다시 선택해주세요.');
+                }
+
+                // 시작 날짜가 더 클 수 없음
+                else if(fromdate_val_temp > todate_val_temp){
+                    alert('시작 날짜가 더 클 수 없습니다. 다시 선택해주세요.');
+                }
+
+                else{
+
+
+                    $("#frm").attr("method", "post");
+                    $("#frm").attr("action", "/export");
+                    $("#frm").submit();
                 }
             });
 
+            // 변환 출력 클릭시
             $("#converted").click(function(){
                 alert('converted!');
             });
@@ -112,13 +130,15 @@
             <div class="form-group form-row my-4">
                 <label class="col-form-label col-md-2 text-center badge-dark mr-4">기간</label>
                 <div class="col-md-3">
-                    <input id="fromdate" class="form-control">
+                    <input type="button" id="fromdate" name="fromdate" class="form-control">
+                    <input type="hidden" id="fromdate_hid" name="fromdate_hid" value="">
                 </div>
 
                 <label class="col-form-label col-md-1 text-center"> ~ </label>
 
                 <div class="col-md-3">
-                    <input id="todate" class="form-control">
+                    <input type="button" id="todate" name="todate" class="form-control" value="">
+                    <input type="hidden" id="todate_hid" name="todate_hid" value="">
                 </div>
             </div>
 
@@ -126,7 +146,7 @@
                 <label class="col-form-label col-md-2 text-center badge-dark mr-4">대분류</label>
 
                 <div class="col-md-3">
-                    <select class="form-control" id="sel1_id">
+                    <select class="form-control" name="sid1" id="sid1_id">
                         <option class="font-weight-bold">전체</option>
                         <option style="font-size: 1pt; background-color: #000000;" disabled>&nbsp;</option>
                         <option>정치</option>
@@ -143,7 +163,7 @@
                 <label class="col-form-label col-md-2 text-center badge-dark mr-4">소분류</label>
 
                 <div class="col-md-3">
-                    <select class="form-control" id="sel2_id">
+                    <select class="form-control" name="sid2" id="sid2_id">
                     </select>
                 </div>
             </div>

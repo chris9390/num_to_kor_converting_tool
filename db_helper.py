@@ -270,6 +270,81 @@ class DB_Helper:
         rows = c.fetchall()
         return rows
 
+
+
+    def select_article_with_sid1_sid2(self, sid1, sid2):
+        c = self.conn.cursor()
+
+        sql = "SELECT article_id, article_aid, article_url, article_title, article_uploaded_date, article_collected_date, article_sid1, article_sid2 FROM ArticleTable" \
+              " WHERE article_sid1 = '%s' AND article_sid2 = '%s'" % (sid1, sid2)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        c.close()
+        return rows
+
+    def select_article_with_sid1(self, sid1):
+        c = self.conn.cursor()
+
+        sql = "SELECT article_id, article_aid, article_url, article_title, article_uploaded_date, article_collected_date, article_sid1, article_sid2 FROM ArticleTable" \
+              " WHERE article_sid1 = '%s'" % sid1
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        c.close()
+        return rows
+
+    def select_article_with_no_cond(self):
+        c = self.conn.cursor()
+
+        sql = "SELECT article_id, article_aid, article_url, article_title, article_uploaded_date, article_collected_date, article_sid1, article_sid2 FROM ArticleTable"
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        c.close()
+        return rows
+
+
+    def select_article_with_date_sid1_sid2(self, sid1, sid2,fromdate, todate):
+        c = self.conn.cursor()
+
+        sql = "SELECT article_id, article_aid, article_url, article_title, article_uploaded_date, article_collected_date, article_sid1, article_sid2 FROM ArticleTable" \
+              " WHERE (article_sid1 = '%s' AND article_sid2 = '%s') AND (article_uploaded_date >= Date('%s') AND article_uploaded_date <= Date('%s'))" % (sid1, sid2, fromdate, todate)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        c.close()
+        return rows
+
+    def select_article_with_date_sid1(self, sid1,fromdate, todate):
+        c = self.conn.cursor()
+
+        sql = "SELECT article_id, article_aid, article_url, article_title, article_uploaded_date, article_collected_date, article_sid1, article_sid2 FROM ArticleTable" \
+              " WHERE article_sid1 = '%s' AND (article_uploaded_date >= Date('%s') AND article_uploaded_date <= Date('%s'))" % (sid1, fromdate, todate)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        c.close()
+        return rows
+
+
+    def select_article_with_date(self, fromdate, todate):
+        c = self.conn.cursor()
+
+        sql = "SELECT article_id, article_aid, article_url, article_title, article_uploaded_date, article_collected_date, article_sid1, article_sid2 FROM ArticleTable" \
+              " WHERE (article_uploaded_date >= Date('%s') AND article_uploaded_date <= Date('%s'))" % (fromdate, todate)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        c.close()
+        return rows
+
     # ===============================================================================================
 
     def update_sent_converted(self, text, id):
