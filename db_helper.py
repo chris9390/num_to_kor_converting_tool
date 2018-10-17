@@ -312,7 +312,7 @@ class DB_Helper:
         c = self.conn.cursor()
 
         sql = "SELECT article_id, article_aid, article_url, article_title, article_uploaded_date, article_collected_date, article_sid1, article_sid2 FROM ArticleTable" \
-              " WHERE (article_sid1 = '%s' AND article_sid2 = '%s') AND (article_uploaded_date >= Date('%s') AND article_uploaded_date <= Date('%s'))" % (sid1, sid2, fromdate, todate)
+              " WHERE (article_sid1 = '%s' AND article_sid2 = '%s') AND (article_uploaded_date >= '%s' AND article_uploaded_date <= '%s')" % (sid1, sid2, fromdate, todate)
 
         c.execute(sql)
 
@@ -324,7 +324,7 @@ class DB_Helper:
         c = self.conn.cursor()
 
         sql = "SELECT article_id, article_aid, article_url, article_title, article_uploaded_date, article_collected_date, article_sid1, article_sid2 FROM ArticleTable" \
-              " WHERE article_sid1 = '%s' AND (article_uploaded_date >= Date('%s') AND article_uploaded_date <= Date('%s'))" % (sid1, fromdate, todate)
+              " WHERE article_sid1 = '%s' AND (article_uploaded_date >= '%s' AND article_uploaded_date <= '%s')" % (sid1, fromdate, todate)
 
         c.execute(sql)
 
@@ -337,7 +337,7 @@ class DB_Helper:
         c = self.conn.cursor()
 
         sql = "SELECT article_id, article_aid, article_url, article_title, article_uploaded_date, article_collected_date, article_sid1, article_sid2 FROM ArticleTable" \
-              " WHERE (article_uploaded_date >= Date('%s') AND article_uploaded_date <= Date('%s'))" % (fromdate, todate)
+              " WHERE (article_uploaded_date >= '%s' AND article_uploaded_date <= '%s')" % (fromdate, todate)
 
         c.execute(sql)
 
@@ -516,6 +516,8 @@ class DB_Helper:
 
 
     # ===============================================================================================
+
+
     def call_every_article(self, page, per_page, asc1_desc0, col_name):
         c = self.conn.cursor()
 
@@ -829,4 +831,17 @@ class DB_Helper:
 
 
         rows = c.fetchall()
+        return rows
+
+
+
+    def select_sent_original_inc_num_sent(self):
+        c = self.conn.cursor()
+
+        sql = "SELECT sent_original FROM SentenceTable WHERE sent_original REGEXP '[0-9]' AND sent_original NOT REGEXP '[a-zA-Z]'"
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        c.close()
         return rows

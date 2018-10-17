@@ -1,4 +1,4 @@
-from flask import Flask, request, session, render_template, redirect, url_for, flash, g, send_from_directory, send_file, make_response
+from flask import Flask, request, session, render_template, redirect, url_for, flash, g, make_response
 from flask_bootstrap import Bootstrap
 import flask_login
 import hashlib
@@ -56,7 +56,7 @@ login_manager.init_app(app)
 sid1_count = {'정치' : 0, '경제' : 0, '사회' : 0, '생활/문화' : 0, '세계' : 0, 'IT/과학' : 0}
 
 sid2_count = {'청와대' : 0, '국회/정당' : 0, '북한' : 0, '행정' : 0, '국방/외교' : 0, '정치 일반' : 0,
-              '금융' : 0, '증권' : 0, '산업/재계' : 0, '중기/벤처' : 0, '부동산' : 0, '글로벌 경제' : 0, '생활 경제' : 0, '경제 일반' : 0,
+              '금융' : 0, '증권' : 0, '산업/재계' : 0, '중기/벤처' : 0, '부동산' : 0, '글로벌 경제' : 0, '생활경제' : 0, '경제 일반' : 0,
               '사건사고' : 0, '교육' : 0, '노동' : 0, '언론' : 0, '환경' : 0, '인권/복지' : 0, '식품/의료' : 0, '지역' : 0, '인물' : 0, '사회 일반' : 0,
               '건강정보' : 0, '자동차/시승기' : 0, '도로/교통' : 0, '여행/레저' : 0, '음식/맛집' : 0, '패션/뷰티' : 0, '공연/전시' : 0, '책' : 0, '종교' : 0, '날씨' : 0, '생활문화 일반' : 0,
               '아시아/호주' : 0, '미국/중남미' : 0, '유럽' : 0, '중동/아프리카' : 0, '세계 일반' : 0,
@@ -87,6 +87,7 @@ def close_connection(exception):
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
+
 
 
 
@@ -736,6 +737,7 @@ def text_edit():
 
     original_text = db_helper.select_data_from_table_by_id('sent_original', 'SentenceTable', sent_id)
 
+    # 문장에 포함된 숫자를 한글로 변환
     converted_list = NumberToWord(original_text)
     converted_text = "\n".join(converted_list)
 
@@ -893,9 +895,9 @@ def order(board_type):
 
 
 
-
-@app.route('/export', methods=['GET', 'POST'])
-def export():
+@app.route('/export', defaults={'button_type':''})
+@app.route('/export/<button_type>', methods=['GET', 'POST'])
+def export(button_type):
     db_conn = get_db()
     db_helper = DB_Helper(db_conn)
     #user_id = flask_login.current_user.user_id
@@ -915,12 +917,11 @@ def export():
             sid2 = None
 
 
-
         original_json_list = []
-        temp_dict = {}
-        temp_list = []
+        converted_json_list = []
 
-        # 날짜 조건이 없는 경우
+
+        # Only 카테고리 조건
         if fromdate == '' and todate == '':
             if sid2 is not None:
                 if sid2 == '전체':
@@ -930,7 +931,24 @@ def export():
             elif sid2 is None:
                 article_rows = db_helper.select_article_with_no_cond()
 
+        # 날짜 조건 + 카테고리 조건
+        else:
+            if sid2 is not None:
+                if sid2 == '전체':
+                    article_rows = db_helper.select_article_with_date_sid1(sid1, fromdate, todate)
+                else:
+                    article_rows = db_helper.select_article_with_date_sid1_sid2(sid1, sid2, fromdate, todate)
+            elif sid2 is None:
+                article_rows = db_helper.select_article_with_date(fromdate, todate)
+
+
+
+        # '원본 저장' 버튼 클릭시 수행
+        if button_type == 'original':
             for article_row in article_rows:
+                temp_dict = {}
+                temp_list = []
+
                 temp_dict['article_aid'] = article_row['article_aid']
                 temp_dict['article_url'] = article_row['article_url']
                 temp_dict['article_title'] = article_row['article_title']
@@ -947,23 +965,44 @@ def export():
 
                 original_json_list.append(temp_dict)
 
-        else:
-            if sid2 is not None:
-                if sid2 == '전체':
-                    article_rows = db_helper.select_article_with_date_sid1(sid1, fromdate, todate)
-                else:
-                    article_rows = db_helper.select_article_with_date_sid1_sid2(sid1, sid2, fromdate, todate)
-            elif sid2 is None:
-                article_rows = db_helper.select_article_with_date(fromdate, todate)
 
-        ######################################################################################################여기부터 계속
+            # 조건에 의해 검색된 결과가 없다면
+            if not original_json_list:
+                return render_template('export.html', nothing_searched=1)
+
+            original_json = json.dumps(original_json_list, indent=4, ensure_ascii=False)
+
+            response = make_response(original_json)
+            response.headers['Content-Disposition'] = "attachment; filename=original.json"
+
+            return response
 
 
-        original_json = json.dumps(original_json_list)
+        # '변환 저장' 버튼 클릭시 수행
+        elif button_type == 'converted':
+            for article_row in article_rows:
 
-        response = make_response(original_json)
-        response.headers['Content-Disposition'] = "attachment; filename=original.json"
-        return response
+                sentence_rows = db_helper.select_every_rows_from_sentence_by_id(article_row['article_id'])
+                for sentence_row in sentence_rows:
+                    temp_dict = {}
+                    temp_dict['input'] = sentence_row['sent_original']
+                    temp_dict['output'] = sentence_row['sent_converted']
+                    converted_json_list.append(temp_dict)
+
+
+            if not converted_json_list:
+                return render_template('export.html', nothing_searched=1)
+
+
+            # ensure_ascii 옵션을 False로 설정해주니 다운로드한 json파일에서 한글이 제대로 보인다.
+            converted_json = json.dumps(converted_json_list, indent=4, ensure_ascii=False)
+
+
+            response = make_response(converted_json)
+            # 헤더를 이런식으로 설정하면 다운로드 창이 뜬다
+            response.headers['Content-Disposition'] = "attachment; filename=converted.json"
+            return response
+
 
 
 

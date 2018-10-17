@@ -23,7 +23,8 @@ pattern_wave_kor = re.compile(r'(\d+[.]?\d*\s*\D{0,2}\s*[∼~-]\s*\d+[.]?\d*\s*\
 
 # 나머지 물결 패턴 모두 처리
 # 여기서는 물결('~')만 '에서'로 바꿔준다.
-pattern_wave_else = re.compile(r'\d+\D*\s*[~∼]\s*\D*\d+')
+#pattern_wave_else = re.compile(r'\d+\D*\s*[~∼]\s*\D*\d+')
+pattern_wave_else = re.compile(r'\d+[.]?\d*\D*[.]*\s*[~∼-]\s*\D*\d+[.]?\d*')
 
 # 20대 남성, 10대 청소년
 # '대' 앞뒤로 두 어절
