@@ -108,7 +108,7 @@ def logout():
     flask_login.logout_user()
 
     flash('로그아웃 되었습니다.', 'alert-success')
-    return render_template('login_form.html')
+    return render_template('login_form.html', is_exist_id=1)
 
 
 @app.route('/login', methods=['GET'])
@@ -141,6 +141,10 @@ def login_check():
         # 비밀번호에 해시함수 적용
         user_pw_hash = hashlib.sha512(user_pw).hexdigest()
 
+
+        if user_id not in users:
+            return render_template('login_form.html', is_exist_id=0)
+
         # 유저이름과 그에 해당하는 패스워드가 일치하는지 확인
         if users[user_id].can_login(user_pw_hash):
 
@@ -158,7 +162,7 @@ def login_check():
         else:
             error_msg = '로그인 정보가 맞지 않습니다.'
             flash(error_msg, 'alert-danger')
-            return render_template('login_form.html')
+            return render_template('login_form.html', is_exist_id=1)
 
 
     elif request.method == 'GET':
@@ -248,6 +252,7 @@ def reload_text_board(search_msg):
     sid1 = None
     sid2 = None
     article_id = request.args.get('article_id')
+    is_all_sents = request.args.get('is_all_sents')
 
     if article_id == 'None' or article_id == '':
         article_id = None
@@ -487,7 +492,8 @@ def reload_text_board(search_msg):
                                inc_num_none_count=inc_num_none_count,
                                inc_num_0_count=inc_num_0_count,
                                inc_num_1_count=inc_num_1_count,
-                               sentence_board_type=sentence_board_type)
+                               sentence_board_type=sentence_board_type,
+                               is_all_sents=1)
 
 
 
@@ -723,29 +729,111 @@ def text_edit():
     db_helper = DB_Helper(db_conn)
 
     user_id = flask_login.current_user.user_id
+    #user_id = ''
 
     page = request.args.get('page')
     sent_id = request.args.get('sent_id')
     article_id = request.args.get('article_id')
     search_msg = request.args.get('search_msg')
     session['sent_id'] = sent_id
+    where_to = request.args.get('where_to')
+    is_all_sents = request.args.get('is_all_sents')
+    ############################################################################### 여기부터
+
+    if article_id == '' or article_id == 'None':
+        article_id = None
 
     print(request.url)
     print('edit page' + str(request.args.get('page')))
     print('article id: ' + str(article_id))
+    print('sent id : ' + str(sent_id))
 
+    sent_modified_date = db_helper.select_data_from_table_by_id('sent_modified_date', 'SentenceTable', sent_id)
+    sent_converted_count = db_helper.select_data_from_table_by_id('sent_converted_count', 'SentenceTable', sent_id)
 
     original_text = db_helper.select_data_from_table_by_id('sent_original', 'SentenceTable', sent_id)
+
 
     # 문장에 포함된 숫자를 한글로 변환
     converted_list = NumberToWord(original_text)
     converted_text = "\n".join(converted_list)
 
+    is_bef_exist = 0
+    is_aft_exist = 0
+
+    if article_id is not None:
+        # (만약 기사를 클릭했다면) 클릭한 문장의 전 문장 정보
+        bef_clicked_row = db_helper.select_before_row_from_sentence(sent_id, article_id)
+    elif article_id is None:
+        # (기사를 클릭하지 않은 경우) 클릭한 문장의 전 문장 정보
+        bef_clicked_row = db_helper.select_before_row_from_sentence(sent_id, None)
+
+
+    if bef_clicked_row != None:
+        is_bef_exist = 1
+
+        # 왼쪽 화살표 버튼 클릭시
+        if where_to == 'bef':
+            sent_id = bef_clicked_row['sent_id']
+            return redirect(url_for('text_edit',
+                                    article_id=article_id,
+                                    sent_id=sent_id,
+                                    search_msg=search_msg,
+                                    where_to=None))
+
+
+
+    if article_id is not None:
+        # (만약 기사를 클릭했다면) 클릭한 문장의 다음 문장 정보
+        aft_clicked_row = db_helper.select_after_row_from_sentence(sent_id, article_id)
+    elif article_id is None:
+        # (기사를 클릭하지 않은 경우) 클릭한 문장의 다음 문장 정보
+        aft_clicked_row = db_helper.select_after_row_from_sentence(sent_id, None)
+
+    if aft_clicked_row != None:
+        is_aft_exist = 1
+
+        if where_to == 'aft':
+            sent_id = aft_clicked_row['sent_id']
+            return redirect(url_for('text_edit',
+                                    article_id=article_id,
+                                    sent_id=sent_id,
+                                    search_msg=search_msg,
+                                    where_to=None))
+
+
+
 
     if search_msg is not None:
-        return render_template('text_edit.html', original_text=original_text, converted_text=converted_text, page=page, search_msg=search_msg, article_id=article_id, user_id=user_id)
+        return render_template('text_edit.html',
+                               original_text=original_text,
+                               converted_text=converted_text,
+                               page=page,
+                               search_msg=search_msg,
+                               article_id=article_id,
+                               sent_id=sent_id,
+                               user_id=user_id,
+                               sent_modified_date=sent_modified_date,
+                               sent_converted_count=sent_converted_count,
+                               is_bef_exist=is_bef_exist,
+                               is_aft_exist=is_aft_exist)
     else:
-        return render_template('text_edit.html', original_text = original_text, converted_text = converted_text, page = page, article_id=article_id, user_id=user_id)
+        return render_template('text_edit.html',
+                               original_text = original_text,
+                               converted_text = converted_text,
+                               page = page,
+                               article_id=article_id,
+                               sent_id=sent_id,
+                               user_id=user_id,
+                               sent_modified_date=sent_modified_date,
+                               sent_converted_count=sent_converted_count,
+                               is_bef_exist=is_bef_exist,
+                               is_aft_exist=is_aft_exist)
+
+
+
+
+
 
 
 @app.route('/<board_type>/delete', methods=['POST'])
@@ -970,7 +1058,7 @@ def export(button_type):
             if not original_json_list:
                 return render_template('export.html', nothing_searched=1)
 
-            original_json = json.dumps(original_json_list, indent=4, ensure_ascii=False)
+            original_json = json.dumps(original_json_list, indent=4, ensure_ascii=False, sort_keys=True)
 
             response = make_response(original_json)
             response.headers['Content-Disposition'] = "attachment; filename=original.json"
@@ -995,7 +1083,7 @@ def export(button_type):
 
 
             # ensure_ascii 옵션을 False로 설정해주니 다운로드한 json파일에서 한글이 제대로 보인다.
-            converted_json = json.dumps(converted_json_list, indent=4, ensure_ascii=False)
+            converted_json = json.dumps(converted_json_list, indent=4, ensure_ascii=False, sort_keys=True)
 
 
             response = make_response(converted_json)

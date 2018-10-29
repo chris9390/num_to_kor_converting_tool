@@ -459,20 +459,26 @@
                             <tr>
                                 <td class="text-center">{{row.sent_id}}</td>
 
+                                {% if is_all_sents is defined %}
+                                    {% set add_behind = "&is_all_sents=1" %}
+                                {% else %}
+                                    {% set add_behind = "" %}
+                                {% endif %}
+
                                 {% if row.sent_confirm == 1 %}
                                 <td>
                                     {% if search_msg is defined %}
-                                        <a href="/text_board/edit?article_id={{article_id}}&sent_id={{row.sent_id}}&page={{page}}&search_msg={{search_msg}}">{{row.sent_converted}}</a>
+                                        <a href="/text_board/edit?article_id={{row.ArticleTable_article_id}}&sent_id={{row.sent_id}}&page={{page}}&search_msg={{search_msg}}{{add_behind}}">{{row.sent_converted}}</a>
                                     {% else %}
-                                        <a href="/text_board/edit?article_id={{article_id}}&sent_id={{row.sent_id}}&page={{page}}">{{row.sent_converted}}</a>
+                                        <a href="/text_board/edit?article_id={{row.ArticleTable_article_id}}&sent_id={{row.sent_id}}&page={{page}}{{add_behind}}">{{row.sent_converted}}</a>
                                     {% endif %}
                                 </td>
                                 {% else %}
                                 <td>
                                     {% if search_msg is defined %}
-                                        <a href="/text_board/edit?article_id={{article_id}}&sent_id={{row.sent_id}}&page={{page}}&search_msg={{search_msg}}">{{row.sent_original}}</a>
+                                        <a href="/text_board/edit?article_id={{row.ArticleTable_article_id}}&sent_id={{row.sent_id}}&page={{page}}&search_msg={{search_msg}}{{add_behind}}">{{row.sent_original}}</a>
                                     {% else %}
-                                        <a href="/text_board/edit?article_id={{article_id}}&sent_id={{row.sent_id}}&page={{page}}">{{row.sent_original}}</a>
+                                        <a href="/text_board/edit?article_id={{row.ArticleTable_article_id}}&sent_id={{row.sent_id}}&page={{page}}{{add_behind}}">{{row.sent_original}}</a>
                                     {% endif %}
                                 </td>
                                 {% endif %}
@@ -572,7 +578,7 @@
         </div>
         {% endfor %}
 
-
+        <a id="back-to-top" href="#" class="btn btn-primary btn-lg back-to-top" role="button" title="Click to return on the top page" data-toggle="tooltip" data-placement="left"><i class="fas fa-arrow-circle-up fa-2x"></i></a>
 
     </div>
 {% endblock %}

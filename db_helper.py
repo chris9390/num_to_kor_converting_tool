@@ -148,14 +148,43 @@ class DB_Helper:
 
 
 
-
-
-
-
-    def select_every_rows_from_sentence_by_id(self, id):
+    def select_before_row_from_sentence(self, sent_id, article_id):
         c = self.conn.cursor()
 
-        sql = "SELECT * FROM SentenceTable WHERE ArticleTable_article_id= %s" % id
+        if article_id != None:
+            sql = "SELECT * FROM SentenceTable WHERE sent_id < %s AND ArticleTable_article_id = %s ORDER BY sent_id DESC LIMIT 1" % (sent_id, article_id)
+        elif article_id == None:
+            sql = "SELECT * FROM SentenceTable WHERE sent_id < %s ORDER BY sent_id DESC LIMIT 1" % sent_id
+
+        c.execute(sql)
+
+        row = c.fetchone()
+
+        c.close()
+        return row
+
+
+    def select_after_row_from_sentence(self, sent_id, article_id):
+        c = self.conn.cursor()
+
+        if article_id != None:
+            sql = "SELECT * FROM SentenceTable WHERE sent_id > %s AND ArticleTable_article_id = %s ORDER BY sent_id ASC LIMIT 1" % (sent_id, article_id)
+        elif article_id == None:
+            sql = "SELECT * FROM SentenceTable WHERE sent_id > %s ORDER BY sent_id ASC LIMIT 1" % sent_id
+
+        c.execute(sql)
+
+        row = c.fetchone()
+
+        c.close()
+        return row
+
+
+
+    def select_every_rows_from_sentence_by_id(self, article_id):
+        c = self.conn.cursor()
+
+        sql = "SELECT * FROM SentenceTable WHERE ArticleTable_article_id= %s" % article_id
 
         '''
         try:
@@ -168,6 +197,21 @@ class DB_Helper:
 
         rows = c.fetchall()
         return rows
+
+
+    def select_row_from_sentence_by_conds(self, sent_id, article_id):
+        c = self.conn.cursor()
+
+        sql = "SELECT * FROM SentenceTable WHERE sent_id = %s AND ArticleTable_article_id = %s" % (sent_id, article_id)
+
+        c.execute(sql)
+
+        rows = c.fetchall()
+        c.close()
+        return rows
+
+
+
 
     def select_data_from_table_by_id(self, column_name, table_name, id):
         c = self.conn.cursor()

@@ -1,10 +1,38 @@
 {% extends "base.html" %}
 {% block title %}LOGIN{% endblock %}
 
+{% block head %}
+    {{super()}}}
+    <script>
+        $(document).ready(function(){
+
+            if('{{is_exist_id}}' == 0){
+                alert('존재하지 않는 아이디 입니다.');
+            }
+
+            $("#login_btn_id").click(function(){
+               var id = $("#id_id").val();
+               var pw = $("#pw_id").val();
+
+
+               if(id == '' || pw == ''){
+                   alert('아이디와 비밀번호를 모두 입력해주십시오.');
+               }
+               else{
+                   $("#frm").attr('method', 'post');
+                   $("#frm").attr('action', '/login_check');
+                }
+            });
+
+        });
+
+    </script>
+{% endblock %}
+
 
 {% block content %}
     <div class="container">
-        <form method="post" action="/login_check">
+        <form id="frm">
 
             <div class="form-group">
                 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -46,7 +74,7 @@
             <div class="form-group form-row">
                 <div class="offset-md-1"></div>
                 <div class="col-md-5">
-                    <input type="submit" class="btn btn-primary btn-block" value="로그인">
+                    <input type="submit" class="btn btn-primary btn-block" id="login_btn_id" value="로그인">
                 </div>
             </div>
 
